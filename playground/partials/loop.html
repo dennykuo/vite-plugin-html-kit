@@ -1,0 +1,25 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Blade Style (as)</p>
+    <ul class="space-y-1">
+      @foreach (['Apple', 'Banana', 'Cherry'] as item)
+      <li class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded text-sm text-gray-700">
+        <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+        {{ item }}
+      </li>
+      @endforeach
+    </ul>
+  </div>
+
+  <div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">JS Style (of)</p>
+    <ul class="space-y-1">
+      @foreach (fruit of ['Grape', 'Orange', 'Pear'])
+      <li class="flex items-center gap-2 px-3 py-2 bg-violet-50 rounded text-sm text-violet-700">
+        <div class="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+        {{ fruit }}
+      </li>
+      @endforeach
+    </ul>
+  </div>
+</div>

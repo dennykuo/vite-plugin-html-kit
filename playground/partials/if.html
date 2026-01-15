@@ -1,0 +1,43 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
+    <p class="text-xs text-gray-500 mb-2">True Condition</p>
+    @if (true)
+    <div class="flex items-center gap-2 text-green-700 font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      通過
+    </div>
+    @endif
+  </div>
+
+  <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
+    <p class="text-xs text-gray-500 mb-2">False Condition (Else)</p>
+    @if (false)
+    <span class="text-red-500">失敗</span>
+    @else
+    <div class="flex items-center gap-2 text-green-700 font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      通過
+    </div>
+    @endif
+  </div>
+
+  <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
+    <p class="text-xs text-gray-500 mb-2">Chained ElseIf</p>
+    @if (false)
+    <span class="text-red-500">失敗</span>
+    @elseif (true)
+    <div class="flex items-center gap-2 text-green-700 font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      通過
+    </div>
+    @else
+    <span class="text-red-500">失敗</span>
+    @endif
+  </div>
+</div>

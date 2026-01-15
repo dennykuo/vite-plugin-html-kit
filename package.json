@@ -1,0 +1,40 @@
+{
+  "name": "vite-plugin-html-kit",
+  "version": "0.0.1",
+  "description": "A Vite plugin for HTML templating, including partials, layouts, and data injection.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dennykuo/vite-plugin-html-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dennykuo/vite-plugin-html-kit/issues"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "files": [
+    "src/index.js",
+    "README.md"
+  ],
+  "scripts": {
+    "play": "npm run dev --prefix playground",
+    "build-play": "npm run build --prefix playground"
+  },
+  "keywords": [
+    "vite",
+    "plugin",
+    "html",
+    "template",
+    "partials",
+    "include",
+    "layout"
+  ],
+  "author": "Denny",
+  "license": "MIT"
+}

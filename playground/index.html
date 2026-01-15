@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模板邏輯測試 | Vite Plugin HTML Includes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800 p-6 md:p-12 min-h-screen">
+
+  <div class="max-w-3xl mx-auto">
+
+    <header class="mb-10 text-center">
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">模板邏輯測試</h1>
+      <p class="text-gray-500 mt-2 text-sm">Vite Plugin HTML Kit 功能驗證</p>
+    </header>
+
+    <div class="space-y-8">
+
+      <!-- 1. 全域變數測試 (Global Data) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">1</span>
+            全域變數測試 (Global Data)
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">vite.config.js</span>
+        </div>
+        <div class="p-6">
+          <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <span class="text-gray-500 font-medium w-24">siteTitle:</span>
+                <span class="font-mono text-blue-700 font-semibold bg-blue-100/50 px-1.5 rounded">{{ siteTitle }}</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="text-gray-500 font-medium w-24">author:</span>
+                <span class="font-mono text-blue-700 font-semibold bg-blue-100/50 px-1.5 rounded">{{ author }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 區域變數內容注入 (Variable Injection) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">2</span>
+            區域變數內容注入
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&lt;include content="..."
+            /&gt;</span>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">透過屬性傳遞 (Attribute Method)</p>
+              <!-- Partial Include -->
+              <include src="content.html" content="這是透過直接屬性傳遞的內容！" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 條件判斷 (Conditionals) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">3</span>
+            條件判斷 (Conditionals)
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@if / &#64;else</span>
+        </div>
+        <div class="p-6">
+          <include src="if.html" />
+        </div>
+      </section>
+
+      <!-- 4. 迴圈 (Loops) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 text-violet-600 text-xs font-bold">4</span>
+            迴圈 (Loops)
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@foreach</span>
+        </div>
+        <div class="p-6">
+          <include src="loop.html" />
+        </div>
+      </section>
+
+      <!-- 5. Switch 判斷 (Switch Case) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">5</span>
+            Switch 判斷
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@switch</span>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-4">
+
+            <div class="flex-1 min-w-[120px] p-4 text-center border-l-4 border-blue-500 bg-blue-50 rounded-r">
+              <span class="block text-xs text-blue-400 font-bold mb-1">CASE A</span>
+              <include src="switch.html" val="A" />
+            </div>
+
+            <div class="flex-1 min-w-[120px] p-4 text-center border-l-4 border-purple-500 bg-purple-50 rounded-r">
+              <span class="block text-xs text-purple-400 font-bold mb-1">CASE B</span>
+              <include src="switch.html" val="B" />
+            </div>
+
+            <div class="flex-1 min-w-[120px] p-4 text-center border-l-4 border-gray-400 bg-gray-50 rounded-r">
+              <span class="block text-xs text-gray-400 font-bold mb-1">DEFAULT</span>
+              <include src="switch.html" val="Z" />
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</body>
+
+</html>

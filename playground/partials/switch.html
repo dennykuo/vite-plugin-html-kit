@@ -1,0 +1,11 @@
+@switch (val)
+@case ('A')
+<div class="text-lg font-bold text-blue-600">Alpha</div>
+<p class="text-xs text-blue-400 mt-1">First Letter</p>
+@case ('B')
+<div class="text-lg font-bold text-purple-600">Beta</div>
+<p class="text-xs text-purple-400 mt-1">Second Letter</p>
+@default
+<div class="text-lg font-bold text-gray-600">Other</div>
+<p class="text-xs text-gray-400 mt-1">Unknown Letter</p>
+@endswitch
