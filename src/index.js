@@ -353,7 +353,7 @@ export default function vitePluginHtmlKit(options = {}) {
   };
 
   /**
-   * 遞迴解析 HTML Include 標籤
+   * 遞迴解析 HTML Include 標籤（含循環引用檢測）
    *
    * 處理 <include src="..." /> 標籤，載入外部 HTML partial 檔案
    * 支援：
@@ -361,9 +361,11 @@ export default function vitePluginHtmlKit(options = {}) {
    * - 資料傳遞（透過 HTML 屬性傳遞變數給 partial）
    * - 完整的 Lodash Template 編譯
    * - 路徑遍歷攻擊防護
+   * - 循環引用檢測（防止無限遞迴）
    *
    * @param {string} html - 包含 include 標籤的 HTML 字串
    * @param {Object} dataContext - 當前可用的資料上下文
+   * @param {string} [currentFile='root'] - 當前正在處理的檔案名稱（用於循環引用檢測）
    * @returns {string} 處理後的 HTML（include 標籤已被實際內容取代）
    *
    * @example
@@ -376,80 +378,108 @@ export default function vitePluginHtmlKit(options = {}) {
    * //   <span>Active</span>
    * // @endif
    */
-  const resolveIncludes = (html, dataContext) => {
-    // 先轉換當前層的 Blade 邏輯標籤
-    let processedHtml = transformLogicTags(html);
+  const resolveIncludes = (() => {
+    // 🔄 使用閉包儲存 include 堆疊，用於循環引用檢測
+    // 每個元素是正在處理的檔案路徑
+    const includeStack = [];
 
-    return processedHtml.replace(REGEX.INCLUDE, (match, src, attributesStr) => {
-      const rootPath = viteConfig?.root || process.cwd();
-      const absolutePartialsDir = path.resolve(rootPath, partialsDir);
-      const filePath = path.resolve(absolutePartialsDir, src);
-
-      // 🔒 安全性檢查：防止路徑遍歷攻擊
-      // 確保解析後的檔案路徑必須在 partialsDir 目錄內
-      // 這可以防止攻擊者使用 "../../../etc/passwd" 讀取系統檔案
-      if (!filePath.startsWith(absolutePartialsDir)) {
-        const errorMsg = `路徑遍歷攻擊偵測: ${src}`;
+    /**
+     * 內部遞迴函式，帶循環引用檢測
+     */
+    return function resolve(html, dataContext, currentFile = 'root') {
+      // 🔍 循環引用檢測：檢查當前檔案是否已在處理堆疊中
+      if (includeStack.includes(currentFile)) {
+        // 發現循環引用！建立循環路徑字串用於錯誤訊息
+        const cycle = [...includeStack, currentFile].join(' → ');
+        const errorMsg = `循環引用偵測: ${cycle}`;
         console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
         return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
       }
 
-      // 檢查檔案是否存在
-      if (!fs.existsSync(filePath)) {
-        const errorMsg = `找不到檔案: ${src}`;
-        console.warn(`\x1b[33m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
-        return `<!-- [vite-plugin-html-kit] 警告: ${errorMsg} -->`;
-      }
+      // 將當前檔案加入處理堆疊
+      includeStack.push(currentFile);
 
       try {
-        // 讀取 partial 檔案內容
-        let content = fs.readFileSync(filePath, 'utf-8');
+        // 先轉換當前層的 Blade 邏輯標籤
+        let processedHtml = transformLogicTags(html);
 
-        // 解析傳遞給 partial 的局部變數 (Locals)
-        // 例如: <include src="..." title="Home" show="true" />
-        // 會被解析為: { title: "Home", show: "true" }
-        const rawLocals = parseAttributes(attributesStr);
+        return processedHtml.replace(REGEX.INCLUDE, (match, src, attributesStr) => {
+          const rootPath = viteConfig?.root || process.cwd();
+          const absolutePartialsDir = path.resolve(rootPath, partialsDir);
+          const filePath = path.resolve(absolutePartialsDir, src);
 
-        // 移除不應該存在的 locals 屬性（舊版語法遺留）
-        // 新版本只支援透過 HTML 屬性傳遞資料，不再支援 locals='{"key": "val"}' 格式
-        if (rawLocals.locals) {
-          delete rawLocals.locals;
-        }
-
-        // 評估屬性值中的 {{ }} 表達式
-        // 例如: tags="{{ post.tags }}" 會被評估為實際的陣列值
-        const locals = evaluateAttributeExpressions(rawLocals, dataContext, defaultCompilerOptions);
-
-        // 合併資料上下文: 全域資料 + 局部變數
-        // _: lodash - 讓模板內可以使用 Lodash 函式庫（例如: {{ _.capitalize(name) }}）
-        const currentData = { _: lodash, ...dataContext, ...locals };
-
-        // 遞迴處理 partial 內的 include 標籤
-        const resolvedContent = resolveIncludes(content, currentData);
-
-        // 編譯並執行 Lodash Template
-        try {
-          const compiled = lodash.template(resolvedContent, defaultCompilerOptions);
-          return compiled(currentData);
-        } catch (e) {
-          // 如果編譯失敗，根據環境變數決定是否顯示除錯資訊
-          if (process.env.DEBUG || process.env.VITE_DEBUG) {
-            console.log('\n--- [vite-plugin-html-kit] 編譯 Partial 時發生錯誤 ---');
-            console.log(`檔案: ${src}`);
-            console.log('內容:');
-            console.log(resolvedContent);
-            console.log('-----------------------------\n');
+          // 🔒 安全性檢查：防止路徑遍歷攻擊
+          // 確保解析後的檔案路徑必須在 partialsDir 目錄內
+          // 這可以防止攻擊者使用 "../../../etc/passwd" 讀取系統檔案
+          if (!filePath.startsWith(absolutePartialsDir)) {
+            const errorMsg = `路徑遍歷攻擊偵測: ${src}`;
+            console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
+            return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
           }
-          throw e;
-        }
 
-      } catch (error) {
-        const errorMsg = `處理檔案 ${src} 時發生錯誤: ${error.message}`;
-        console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
-        return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
+          // 檢查檔案是否存在
+          if (!fs.existsSync(filePath)) {
+            const errorMsg = `找不到檔案: ${src}`;
+            console.warn(`\x1b[33m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
+            return `<!-- [vite-plugin-html-kit] 警告: ${errorMsg} -->`;
+          }
+
+          try {
+            // 讀取 partial 檔案內容
+            let content = fs.readFileSync(filePath, 'utf-8');
+
+            // 解析傳遞給 partial 的局部變數 (Locals)
+            // 例如: <include src="..." title="Home" show="true" />
+            // 會被解析為: { title: "Home", show: "true" }
+            const rawLocals = parseAttributes(attributesStr);
+
+            // 移除不應該存在的 locals 屬性（舊版語法遺留）
+            // 新版本只支援透過 HTML 屬性傳遞資料，不再支援 locals='{"key": "val"}' 格式
+            if (rawLocals.locals) {
+              delete rawLocals.locals;
+            }
+
+            // 評估屬性值中的 {{ }} 表達式
+            // 例如: tags="{{ post.tags }}" 會被評估為實際的陣列值
+            const locals = evaluateAttributeExpressions(rawLocals, dataContext, defaultCompilerOptions);
+
+            // 合併資料上下文: 全域資料 + 局部變數
+            // _: lodash - 讓模板內可以使用 Lodash 函式庫（例如: {{ _.capitalize(name) }}）
+            const currentData = { _: lodash, ...dataContext, ...locals };
+
+            // 🔄 遞迴處理 partial 內的 include 標籤，傳入當前檔案名稱用於循環檢測
+            const resolvedContent = resolve(content, currentData, src);
+
+            // 編譯並執行 Lodash Template
+            try {
+              const compiled = lodash.template(resolvedContent, defaultCompilerOptions);
+              return compiled(currentData);
+            } catch (e) {
+              // 如果編譯失敗，根據環境變數決定是否顯示除錯資訊
+              if (process.env.DEBUG || process.env.VITE_DEBUG) {
+                console.log('\n--- [vite-plugin-html-kit] 編譯 Partial 時發生錯誤 ---');
+                console.log(`檔案: ${src}`);
+                console.log('內容:');
+                console.log(resolvedContent);
+                console.log('-----------------------------\n');
+              }
+              throw e;
+            }
+
+          } catch (error) {
+            const errorMsg = `處理檔案 ${src} 時發生錯誤: ${error.message}`;
+            console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
+            return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
+          }
+        });
+
+      } finally {
+        // ✅ 處理完成後，必須從堆疊移除當前檔案
+        // 使用 finally 確保即使發生錯誤也會正確清理
+        includeStack.pop();
       }
-    });
-  };
+    };
+  })();
 
   // 返回 Vite Plugin 物件
   return {
@@ -525,8 +555,11 @@ export default function vitePluginHtmlKit(options = {}) {
       // _: lodash - 讓所有模板都可以使用 Lodash 函式庫
       const globalData = { _: lodash, ...data };
 
-      // 遞迴處理所有 include 標籤
-      let fullHtml = resolveIncludes(html, globalData);
+      // 取得當前處理的檔案名稱（用於循環引用檢測的錯誤訊息）
+      const filename = ctx?.filename ? path.basename(ctx.filename) : 'index.html';
+
+      // 遞迴處理所有 include 標籤（帶循環引用檢測）
+      let fullHtml = resolveIncludes(html, globalData, filename);
 
       try {
         // 編譯並執行最終的 HTML 模板
