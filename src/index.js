@@ -156,7 +156,10 @@ export default function vitePluginHtmlKit(options = {}) {
         const resolvedContent = resolveIncludes(content, currentData);
         // [DEBUG] Print content before compilation if error occurs
         try {
-          const compiled = lodash.template(resolvedContent, compilerOptions);
+          const compiled = lodash.template(resolvedContent, {
+            ...compilerOptions,
+            interpolate: /{{([\s\S]+?)}}/g,
+          });
           return compiled(currentData);
         } catch (e) {
           console.log('--- ERROR COMPILING PARTIAL ---');

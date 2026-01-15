@@ -50,7 +50,7 @@ Use the `<include>` tag to inject other HTML files. You can pass data via attrib
 <include src="header.html" title="Home Page" active="home" />
 
 <main>
-  <h1>Welcome to <%= site %></h1>
+  <h1>Welcome to {{ site }}</h1>
 </main>
 
 <include src="footer.html" />
