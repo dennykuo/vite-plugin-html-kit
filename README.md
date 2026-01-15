@@ -71,9 +71,9 @@ Use `{{ variableName }}` to output data.
 <p>Page Title: {{ title }}</p> <!-- 'title' passed from <include> attribute -->
 ```
 
-### 3. Control Structures (Blade-style)
+### 3. Control Structures (Laravel Blade style)
 
-This plugin supports clean, Blade-inspired syntax for common logic.
+This plugin supports clean, Laravel Blade inspired syntax for common logic.
 
 #### Conditionals (`@if`)
 
@@ -135,8 +135,6 @@ By default, this plugin uses `{{ }}` for variable interpolation. If you prefer L
 **Using Lodash native syntax (`<%= %>`)**
 ```js
 vitePluginHtmlKit({
-  partialsDir: 'partials',
-  data: { site: 'My Site' },
   compilerOptions: {
     interpolate: /<%=([\s\S]+?)%>/g  // Enable <%= %> syntax
   }
