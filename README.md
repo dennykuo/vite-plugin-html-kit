@@ -35,9 +35,9 @@ import vitePluginHtmlKit from 'vite-plugin-html-kit';
 export default defineConfig({
   plugins: [
     vitePluginHtmlKit({
-      // Configuration Options
-      partialsDir: 'partials', // Directory for partial files (default: 'partials')
-      data: {                  // Global data available in all templates
+      // Configuration Options (all optional)
+      partialsDir: 'partials', // (optional) Directory for partial files (default: 'partials')
+      data: {                  // (optional) Global data available in all templates
         site: 'My Awesome Site',
         author: 'Denny'
       }
@@ -260,7 +260,7 @@ export default defineConfig({
 
 ## Plugin Variants
 
-This package includes three variants for different use cases:
+This package includes variants for different use cases:
 
 ### Main Version (Default)
 Full-featured plugin with Blade-style syntax support.
@@ -277,6 +277,7 @@ import vitePluginHtmlKit from 'vite-plugin-html-kit';
 - ✅ Data passing via attributes
 - ✅ HMR support
 
+<!--
 ### XML-Style Variant
 Uses XML-like tags instead of Blade syntax.
 
@@ -307,6 +308,7 @@ import vitePluginHtmlKit from 'vite-plugin-html-kit/src/vite-plugin-html-kit-lit
 - ❌ No templating engine (pure HTML merging)
 - ❌ No variables, no logic
 - ⚡ Smallest bundle size, fastest execution
+-->
 
 ## Performance
 
@@ -485,38 +487,20 @@ npm run test:coverage     # Coverage report
 ```
 
 4. Test in playground:
+
+**Method 1: Using npm scripts from project root**
+```bash
+npm run play              # Start dev server (from root)
+npm run build-play        # Build for production (from root)
+```
+
+**Method 2: Change directory to playground**
 ```bash
 cd playground
 npm install
 npm run dev               # Start dev server
 npm run build             # Build for production
 ```
-
-### Code Style
-
-- Use Traditional Chinese (繁體中文) for code comments
-- Follow existing code formatting
-- Add JSDoc comments for new functions
-- Write tests for new features
-
-### Pull Request Process
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Make your changes with clear commit messages
-4. Add tests for new functionality
-5. Ensure all tests pass: `npm test`
-6. Update documentation if needed
-7. Submit a pull request
-
-### Reporting Issues
-
-When reporting issues, please include:
-- Vite version
-- Plugin version
-- Minimal reproduction code
-- Expected vs actual behavior
-- Error messages or console output
 
 ## License
 
