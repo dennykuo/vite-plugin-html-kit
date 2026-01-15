@@ -6,7 +6,7 @@
 
 A powerful Vite plugin for HTML templating, including partials, layouts, and data injection. It supports **Blade-like logic** (`@if`, `@foreach`, `@switch`) and standard **Lodash templates** for maximum flexibility.
 
-> 🚀 **91.97% test coverage** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
+> 🚀 **66 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
 
 ## Features
 
@@ -127,6 +127,44 @@ Supports both "Blade style" and "JS style" syntax.
 | `partialsDir` | `string` | `'partials'` | Directory relative to `root` where partial files are stored. |
 | `data` | `object` | `{}` | Global data object injected into all templates. |
 | `compilerOptions` | `object` | `{}` | Lodash template compiler options (see [Lodash docs](https://lodash.com/docs/4.17.15#template)). |
+
+### Custom Variable Syntax
+
+By default, this plugin uses `{{ }}` for variable interpolation. If you prefer Lodash's native `<%= %>` syntax or want to use a custom syntax, you can configure it via `compilerOptions`:
+
+**Using Lodash native syntax (`<%= %>`)**
+```js
+vitePluginHtmlKit({
+  partialsDir: 'partials',
+  data: { site: 'My Site' },
+  compilerOptions: {
+    interpolate: /<%=([\s\S]+?)%>/g  // Enable <%= %> syntax
+  }
+})
+```
+
+**Using custom bracket syntax (`[[ ]]`)**
+```js
+vitePluginHtmlKit({
+  compilerOptions: {
+    interpolate: /\[\[([\s\S]+?)\]\]/g  // Enable [[ ]] syntax
+  }
+})
+```
+
+**Syntax comparison:**
+```html
+<!-- Default: {{ }} syntax -->
+<h1>{{ site }}</h1>
+
+<!-- Lodash native: <%= %> syntax -->
+<h1><%= site %></h1>
+
+<!-- Custom: [[ ]] syntax -->
+<h1>[[ site ]]</h1>
+```
+
+**Note:** The `compilerOptions` object is passed directly to Lodash's `_.template()` function, so you can use any options from the [Lodash template documentation](https://lodash.com/docs/4.17.15#template).
 
 ## Real-World Examples
 
@@ -314,7 +352,7 @@ import vitePluginHtmlKit from 'vite-plugin-html-kit/src/vite-plugin-html-kit-lit
 
 | Metric | Value |
 | :--- | :--- |
-| **Test Coverage** | 91.97% (49 tests passing) |
+| **Test Coverage** | 66 tests passing (7 test suites) |
 | **Bundle Size** | ~15KB (main), ~13KB (lite) |
 | **Build Speed** | Negligible overhead on Vite builds |
 | **HMR Performance** | Instant hot reload on partial changes |
