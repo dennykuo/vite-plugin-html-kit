@@ -12,15 +12,19 @@
   "type": "module",
   "main": "src/index.js",
   "module": "src/index.js",
+  "types": "src/index.d.ts",
   "exports": {
     ".": {
       "import": "./src/index.js",
-      "require": "./src/index.js"
+      "require": "./src/index.js",
+      "types": "./src/index.d.ts"
     }
   },
   "files": [
     "src/index.js",
-    "README.md"
+    "src/index.d.ts",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "play": "npm run dev --prefix playground",
