@@ -67,6 +67,52 @@ const parseAttributes = (str) => {
 };
 
 /**
+ * Helper: 評估屬性值中的 {{ }} 表達式
+ *
+ * 當在 include 標籤中使用 {{ }} 傳遞資料時（例如: tags="{{ post.tags }}"），
+ * 需要先評估這些表達式才能將實際的值傳遞給 partial
+ *
+ * 注意：此函式會保留 JavaScript 資料型別（陣列、物件等），
+ * 而不是將所有值都轉換為字串
+ *
+ * @param {Object} attrs - 屬性物件
+ * @param {Object} dataContext - 當前資料上下文
+ * @param {Object} compilerOptions - Lodash template 編譯選項（未使用，為了保持一致性）
+ * @returns {Object} 評估後的屬性物件
+ *
+ * @example
+ * // 輸入: { tags: "{{ post.tags }}" }
+ * // 輸出: { tags: ['vite', 'frontend', 'javascript'] }
+ */
+const evaluateAttributeExpressions = (attrs, dataContext, compilerOptions) => {
+  const evaluated = {};
+
+  for (const [key, value] of Object.entries(attrs)) {
+    // 檢查值是否包含 {{ }} 表達式
+    if (typeof value === 'string' && /^\{\{[\s\S]+?\}\}$/.test(value.trim())) {
+      try {
+        // 提取 {{ }} 內的表達式
+        const expression = value.trim().replace(/^\{\{|\}\}$/g, '').trim();
+
+        // 使用 Function 構造器評估表達式，保留原始資料型別
+        // 這樣可以正確傳遞陣列、物件等複雜資料結構
+        const func = new Function(...Object.keys(dataContext), '_', `return ${expression};`);
+        evaluated[key] = func(...Object.values(dataContext), lodash);
+      } catch (e) {
+        // 如果評估失敗，保留原始字串
+        console.warn(`\x1b[33m[vite-plugin-html-kit] 無法評估屬性 ${key} 的值: ${value}\x1b[0m`);
+        evaluated[key] = value;
+      }
+    } else {
+      // 沒有 {{ }} 表達式，直接使用原始值
+      evaluated[key] = value;
+    }
+  }
+
+  return evaluated;
+};
+
+/**
  * Vite Plugin: HTML Include & Templating Logic
  *
  * 提供強大的 HTML 模板功能，包括：
@@ -251,13 +297,17 @@ export default function vitePluginHtmlKit(options = {}) {
         // 解析傳遞給 partial 的局部變數 (Locals)
         // 例如: <include src="..." title="Home" show="true" />
         // 會被解析為: { title: "Home", show: "true" }
-        const locals = parseAttributes(attributesStr);
+        const rawLocals = parseAttributes(attributesStr);
 
         // 移除不應該存在的 locals 屬性（舊版語法遺留）
         // 新版本只支援透過 HTML 屬性傳遞資料，不再支援 locals='{"key": "val"}' 格式
-        if (locals.locals) {
-          delete locals.locals;
+        if (rawLocals.locals) {
+          delete rawLocals.locals;
         }
+
+        // 評估屬性值中的 {{ }} 表達式
+        // 例如: tags="{{ post.tags }}" 會被評估為實際的陣列值
+        const locals = evaluateAttributeExpressions(rawLocals, dataContext, defaultCompilerOptions);
 
         // 合併資料上下文: 全域資料 + 局部變數
         // _: lodash - 讓模板內可以使用 Lodash 函式庫（例如: {{ _.capitalize(name) }}）
