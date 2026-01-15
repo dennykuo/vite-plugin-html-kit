@@ -9,7 +9,7 @@
   "bugs": {
     "url": "https://github.com/dennykuo/vite-plugin-html-kit/issues"
   },
-  "homepage": "https://github.com/dennykuo/vite-plugin-html-kit#readme",
+  "homepage": "https://github.com/dennykuo/vite-plugin-html-kit",
   "type": "module",
   "main": "src/index.js",
   "module": "src/index.js",
