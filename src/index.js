@@ -801,6 +801,11 @@ export default function vitePluginHtmlKit(options = {}) {
       const isPartialFile = file.startsWith(absolutePartialsDir);
 
       if (isHtmlFile || isPartialFile) {
+        // 🔥 清除快取：確保下次請求時重新轉換
+        // 當 HTML 或 partial 檔案變更時，必須清除快取
+        // 否則會返回舊的快取內容，導致熱更新失效
+        transformCache.clear();
+
         // 發送完整重載訊號給瀏覽器
         server.ws.send({
           type: 'full-reload',
