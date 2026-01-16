@@ -392,64 +392,12 @@ export default defineConfig({
 <include src="partials/language-switcher.html" />
 ```
 
-## Plugin Variants
-
-This package includes variants for different use cases:
-
-### Main Version (Default)
-Full-featured plugin with Blade-style syntax support.
-
-```js
-import vitePluginHtmlKit from 'vite-plugin-html-kit';
-```
-
-**Features:**
-- ✅ Partial includes
-- ✅ Blade syntax (`@if`, `@foreach`, `@switch`)
-- ✅ Lodash template engine
-- ✅ Variable interpolation (`{{ }}`)
-- ✅ Data passing via attributes
-- ✅ HMR support
-
-<!--
-### XML-Style Variant
-Uses XML-like tags instead of Blade syntax.
-
-```js
-import vitePluginHtmlKit from 'vite-plugin-html-kit/src/vite-plugin-html-kit-xml-style.js';
-```
-
-**Syntax Example:**
-```html
-<if condition="user.isLoggedIn">
-  <p>Welcome back!</p>
-</if>
-
-<each loop="item in items">
-  <li>{{ item.name }}</li>
-</each>
-```
-
-### Lite Version
-Ultra-lightweight version with only include functionality.
-
-```js
-import vitePluginHtmlKit from 'vite-plugin-html-kit/src/vite-plugin-html-kit-lite.js';
-```
-
-**Features:**
-- ✅ Partial includes only
-- ❌ No templating engine (pure HTML merging)
-- ❌ No variables, no logic
-- ⚡ Smallest bundle size, fastest execution
--->
-
 ## Performance
 
 | Metric | Value |
 | :--- | :--- |
 | **Test Coverage** | 79 tests passing (8 test suites) |
-| **Bundle Size** | ~15KB (main), ~13KB (lite) |
+| **Bundle Size** | ~15KB |
 | **Build Speed** | Negligible overhead on Vite builds |
 | **HMR Performance** | Instant hot reload on partial changes |
 | **Memory Usage** | Minimal (caches compiled templates) |
@@ -492,8 +440,7 @@ vitePluginHtmlKit({
 **Symptoms:** Variables are not interpolated, appearing literally as `{{ variable }}`.
 
 **Solutions:**
-1. Make sure you're using the full version, not the lite version
-2. Check that data is passed correctly in the config:
+1. Check that data is passed correctly in the config:
 
 ```js
 vitePluginHtmlKit({
@@ -503,7 +450,7 @@ vitePluginHtmlKit({
 })
 ```
 
-3. For variables in partials, pass them via attributes:
+2. For variables in partials, pass them via attributes:
 
 ```html
 <include src="header.html" title="{{ pageTitle }}" />
