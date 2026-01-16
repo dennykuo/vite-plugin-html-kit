@@ -120,8 +120,25 @@ const REGEX = {
   ENDFOREACH: /@endforeach/gi,
 
   // Include 標籤: <include src="..." ... />
-  // 捕獲 src 屬性和其他屬性字串
-  INCLUDE: /<include\s+src=["']([^"']+)["']\s*([^>]*)\/?>/gi,
+  // 捕獲 src 屬性、其他屬性和標籤內容（用於 slot）
+  // 支援自閉合和非自閉合兩種形式
+  INCLUDE: /<include\s+src=["']([^"']+)["']\s*([^>]*?)>([\s\S]*?)<\/include>|<include\s+src=["']([^"']+)["']\s*([^>]*)\/?>/gi,
+
+  // 佈局繼承 (Layout Inheritance)
+  // @extends('layout-path')
+  EXTENDS: /@extends\s*\(\s*['"](.+?)['"]\s*\)/gi,
+
+  // Section 定義: @section('name') ... @endsection
+  SECTION: /@section\s*\(\s*['"](.+?)['"]\s*\)([\s\S]*?)@endsection/gi,
+
+  // Yield 佔位符: @yield('name') 或 @yield('name', 'default')
+  YIELD: /@yield\s*\(\s*['"](.+?)['"]\s*(?:,\s*['"](.+?)['"]\s*)?\)/gi,
+
+  // Slot 定義: @slot('name') ... @endslot
+  SLOT_BLOCK: /@slot\s*\(\s*['"](.+?)['"]\s*\)([\s\S]*?)@endslot/gi,
+
+  // Slot 佔位符: @slot('name') 或 @slot('name', 'default')
+  SLOT: /@slot\s*\(\s*['"](.+?)['"]\s*(?:,\s*['"](.+?)['"]\s*)?\)/gi,
 
   // 屬性解析: key="value" 或 key='value'
   // 支援帶連字符的屬性名稱 (e.g., data-id)
@@ -353,6 +370,151 @@ export default function vitePluginHtmlKit(options = {}) {
   };
 
   /**
+   * 解析 @section 區塊
+   *
+   * 從 HTML 中提取所有 @section('name')...@endsection 區塊
+   * 返回一個物件，鍵為 section 名稱，值為 section 內容
+   *
+   * @param {string} html - 包含 section 定義的 HTML 字串
+   * @returns {Object} section 名稱到內容的映射
+   *
+   * @example
+   * // HTML: @section('title')Home Page@endsection
+   * // Returns: { title: 'Home Page' }
+   */
+  const parseSections = (html) => {
+    const sections = {};
+    let match;
+
+    // 重置 regex 的 lastIndex（避免狀態殘留）
+    REGEX.SECTION.lastIndex = 0;
+
+    while ((match = REGEX.SECTION.exec(html)) !== null) {
+      const name = match[1];       // section 名稱
+      const content = match[2];    // section 內容
+      sections[name] = content.trim();
+    }
+
+    return sections;
+  };
+
+  /**
+   * 處理佈局繼承（含循環引用檢測）
+   *
+   * 處理 @extends 指令，載入佈局檔案並將 @section 內容填入 @yield 佔位符
+   * 支援：
+   * - 佈局繼承
+   * - Section/Yield 機制
+   * - 默認值支援
+   * - 循環引用檢測（防止 A extends B extends A）
+   * - 多層佈局的 section 傳遞
+   *
+   * @param {string} html - 包含 @extends 和 @section 的 HTML 字串
+   * @param {string} [currentFile='root'] - 當前檔案名稱（用於循環引用檢測）
+   * @param {Object} [inheritedSections={}] - 從子頁面繼承的 sections
+   * @returns {string} 處理後的 HTML（已應用佈局）
+   */
+  const processExtends = (() => {
+    // 🔄 使用閉包儲存佈局堆疊，用於循環引用檢測
+    const layoutStack = [];
+
+    return function process(html, currentFile = 'root', inheritedSections = {}) {
+      // 檢查是否有 @extends 指令
+      const extendsMatch = html.match(REGEX.EXTENDS);
+      if (!extendsMatch) {
+        // 沒有 @extends，直接返回
+        return html;
+      }
+
+      // 提取佈局路徑
+      const layoutPath = extendsMatch[0].replace(REGEX.EXTENDS, '$1');
+
+      // 🔒 循環引用檢測
+      if (layoutStack.includes(layoutPath)) {
+        const cycle = [...layoutStack, layoutPath].join(' → ');
+        const errorMsg = `循環佈局引用偵測: ${cycle}`;
+        console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
+        return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
+      }
+
+      layoutStack.push(layoutPath);
+
+      try {
+        // 移除 @extends 指令
+        html = html.replace(REGEX.EXTENDS, '');
+
+        // 解析所有 @section 區塊
+        const sections = parseSections(html);
+
+        // 移除所有 @section 定義（已經提取到 sections 物件）
+        html = html.replace(REGEX.SECTION, '');
+
+        // 讀取佈局檔案
+        const rootPath = viteConfig?.root || process.cwd();
+        const absolutePartialsDir = path.resolve(rootPath, partialsDir);
+        const layoutFilePath = path.resolve(absolutePartialsDir, layoutPath);
+
+        // 🔒 安全性檢查：路徑遍歷攻擊防護
+        // 確保解析後的檔案路徑必須在 partialsDir 目錄內
+        if (!layoutFilePath.startsWith(absolutePartialsDir)) {
+          console.error(`\x1b[31m[vite-plugin-html-kit] 路徑遍歷攻擊偵測: ${layoutPath}\x1b[0m`);
+          return `<!-- [vite-plugin-html-kit] 錯誤: 不允許的佈局路徑 -->`;
+        }
+
+        if (!fs.existsSync(layoutFilePath)) {
+          console.warn(`\x1b[33m[vite-plugin-html-kit] 找不到佈局檔案: ${layoutPath}\x1b[0m`);
+          return `<!-- [vite-plugin-html-kit] 錯誤: 找不到佈局檔案 ${layoutPath} -->`;
+        }
+
+        let layoutContent = fs.readFileSync(layoutFilePath, 'utf-8');
+
+        // 遞迴處理佈局的 @extends（支援多層佈局）
+        // 先提取佈局中的 sections（如果有）
+        const layoutSections = parseSections(layoutContent);
+
+        // 合併所有可用的 sections：當前頁面 sections + 繼承的 sections
+        // 優先使用當前頁面的 sections（覆蓋繼承的同名 sections）
+        const allSections = { ...inheritedSections, ...sections };
+
+        // 處理佈局的 extends，並傳遞合併後的 sections
+        layoutContent = process(layoutContent, layoutPath, allSections);
+
+        // 替換 @yield 佔位符
+        // 優先順序：當前頁面 sections > 繼承的 sections > 佈局自己的 sections > 默認值
+        layoutContent = layoutContent.replace(REGEX.YIELD, (match, name, defaultValue) => {
+          // 如果當前頁面有對應的 section，使用當前頁面的 section 內容
+          if (sections[name] !== undefined) {
+            return sections[name];
+          }
+          // 否則如果繼承的 sections 有，使用繼承的 section 內容
+          if (inheritedSections[name] !== undefined) {
+            return inheritedSections[name];
+          }
+          // 否則如果佈局有對應的 section，使用佈局的 section 內容
+          if (layoutSections[name] !== undefined) {
+            return layoutSections[name];
+          }
+          // 都沒有，使用默認值（如果有提供）
+          if (defaultValue !== undefined) {
+            return defaultValue;
+          }
+          // 都沒有，返回空字串
+          return '';
+        });
+
+        return layoutContent;
+
+      } catch (error) {
+        console.error(`\x1b[31m[vite-plugin-html-kit] 處理佈局時發生錯誤: ${error.message}\x1b[0m`);
+        return `<!-- [vite-plugin-html-kit] 錯誤: ${error.message} -->`;
+      } finally {
+        // 無論成功或失敗，都要從堆疊中移除
+        layoutStack.pop();
+      }
+    };
+  })();
+
+  /**
    * 遞迴解析 HTML Include 標籤（含循環引用檢測）
    *
    * 處理 <include src="..." /> 標籤，載入外部 HTML partial 檔案
@@ -403,7 +565,16 @@ export default function vitePluginHtmlKit(options = {}) {
         // 先轉換當前層的 Blade 邏輯標籤
         let processedHtml = transformLogicTags(html);
 
-        return processedHtml.replace(REGEX.INCLUDE, (match, src, attributesStr) => {
+        return processedHtml.replace(REGEX.INCLUDE, (match, src, attributesStr, includeContent, src2, attributesStr2) => {
+          // 處理兩種形式的 include 標籤
+          // 形式1: <include src="..." ...>content</include>（包含 slot）
+          // 形式2: <include src="..." ... />（自閉合，無 slot）
+          if (!src) {
+            // 如果第一組沒匹配到，使用第二組（自閉合形式）
+            src = src2;
+            attributesStr = attributesStr2;
+            includeContent = '';
+          }
           const rootPath = viteConfig?.root || process.cwd();
           const absolutePartialsDir = path.resolve(rootPath, partialsDir);
           const filePath = path.resolve(absolutePartialsDir, src);
@@ -427,6 +598,36 @@ export default function vitePluginHtmlKit(options = {}) {
           try {
             // 讀取 partial 檔案內容
             let content = fs.readFileSync(filePath, 'utf-8');
+
+            // 🎰 解析 Slot 內容（如果有）
+            // 從 <include>...</include> 標籤內容中提取 @slot('name')...@endslot 區塊
+            const slots = {};
+            if (includeContent && includeContent.trim()) {
+              let slotMatch;
+              // 重置 regex 的 lastIndex
+              REGEX.SLOT_BLOCK.lastIndex = 0;
+
+              while ((slotMatch = REGEX.SLOT_BLOCK.exec(includeContent)) !== null) {
+                const slotName = slotMatch[1];      // slot 名稱
+                const slotContent = slotMatch[2];   // slot 內容
+                slots[slotName] = slotContent.trim();
+              }
+            }
+
+            // 🎰 替換組件中的 @slot 佔位符
+            // 在處理 include 之前，先替換 slot 佔位符
+            content = content.replace(REGEX.SLOT, (slotMatch, slotName, defaultValue) => {
+              // 如果有對應的 slot 內容，使用 slot 內容
+              if (slots[slotName] !== undefined) {
+                return slots[slotName];
+              }
+              // 否則使用默認值（如果有提供）
+              if (defaultValue !== undefined) {
+                return defaultValue;
+              }
+              // 都沒有，返回空字串
+              return '';
+            });
 
             // 解析傳遞給 partial 的局部變數 (Locals)
             // 例如: <include src="..." title="Home" show="true" />
@@ -558,7 +759,15 @@ export default function vitePluginHtmlKit(options = {}) {
       // 取得當前處理的檔案名稱（用於循環引用檢測的錯誤訊息）
       const filename = ctx?.filename ? path.basename(ctx.filename) : 'index.html';
 
-      // 遞迴處理所有 include 標籤（帶循環引用檢測）
+      // 🎨 步驟 1: 處理佈局繼承（@extends + @section + @yield）
+      // 必須在其他處理之前執行，因為佈局可能包含 include 和其他邏輯
+      html = processExtends(html, filename);
+
+      // 🎨 步驟 1.5: 轉換 Blade 邏輯標籤
+      // 在處理 extends 後，確保所有 @if/@foreach/@switch 都被轉換
+      html = transformLogicTags(html);
+
+      // 🧩 步驟 2: 遞迴處理所有 include 標籤（帶槽位支援和循環引用檢測）
       let fullHtml = resolveIncludes(html, globalData, filename);
 
       try {

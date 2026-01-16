@@ -6,13 +6,15 @@
 
 A powerful Vite plugin for HTML templating, including partials, layouts, and data injection. It supports **Blade-like logic** (`@if`, `@foreach`, `@switch`) and standard **Lodash templates** for maximum flexibility.
 
-> 🚀 **66 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
+> 🚀 **79 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
 
 ## Features
 
 - 🧩 **Partials**: Easily organize your HTML into reusable components (`<include src="..." />`).
 - 💉 **Data Injection**: Pass data to partials via attributes or global configuration.
 - 🛠 **Blade-like Syntax**: Clean and readable control structures (`@if`, `@foreach`, `@switch`).
+- 📐 **Layout Inheritance**: Laravel Blade style layouts with `@extends`, `@section`, and `@yield`.
+- 🎰 **Component Slots**: Pass content blocks to components using `@slot`.
 - ⚡ **Vite Integration**: Seamless integration with Vite's dev server and build process.
 - 🎨 **Zero Config Required**: Works out of the box, but highly customizable.
 
@@ -118,6 +120,102 @@ Supports both "Blade style" and "JS style" syntax.
   @default
     <span class="text-gray-500">Pending...</span>
 @endswitch
+```
+
+### 4. Layout Inheritance & Slots
+
+Organize your HTML with powerful layout inheritance (Laravel Blade style).
+
+#### Layout Inheritance (`@extends`, `@section`, `@yield`)
+
+Create reusable layouts and extend them in child pages.
+
+**Layout File** (`partials/layouts/app.html`):
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>@yield('title', 'My Site')</title>
+  @yield('styles')
+</head>
+<body>
+  <header>@yield('header')</header>
+  <main>@yield('content')</main>
+  <footer>@yield('footer', '<p>&copy; 2026</p>')</footer>
+  @yield('scripts')
+</body>
+</html>
+```
+
+**Child Page** (`index.html`):
+```html
+@extends('layouts/app.html')
+
+@section('title')
+  Home Page
+@endsection
+
+@section('content')
+  <h1>Welcome to my site</h1>
+  <p>This is the home page content.</p>
+@endsection
+
+@section('scripts')
+  <script src="/home.js"></script>
+@endsection
+```
+
+**Key Features:**
+- `@extends('path')` - Inherit from a layout file
+- `@section('name')...@endsection` - Define content blocks
+- `@yield('name')` - Output section content (use in layouts)
+- `@yield('name', 'default')` - Yield with default value
+- Supports **nested layouts** (layouts can extend other layouts)
+
+#### Component Slots (`@slot`)
+
+Pass content blocks to reusable components.
+
+**Component File** (`partials/components/card.html`):
+```html
+<div class="card">
+  <div class="card-header">
+    @slot('header', '<h3>Default Title</h3>')
+  </div>
+  <div class="card-body">
+    @slot('body')
+  </div>
+  <div class="card-footer">
+    @slot('footer')
+  </div>
+</div>
+```
+
+**Using Components with Slots**:
+```html
+<include src="components/card.html">
+  @slot('header')
+    <h3>Product Name</h3>
+  @endslot
+
+  @slot('body')
+    <p>Product description here.</p>
+    <p class="price">$49.99</p>
+  @endslot
+
+  @slot('footer')
+    <button>Add to Cart</button>
+  @endslot
+</include>
+```
+
+**Note**: When using components inside loops with dynamic data, pass data via attributes instead of slots to avoid variable scope issues:
+
+```html
+<!-- ✅ Recommended: Pass data via attributes -->
+@foreach (items as item)
+  <include src="card.html" title="{{ item.name }}" body="{{ item.desc }}" />
+@endforeach
 ```
 
 ## Configuration Reference
@@ -350,7 +448,7 @@ import vitePluginHtmlKit from 'vite-plugin-html-kit/src/vite-plugin-html-kit-lit
 
 | Metric | Value |
 | :--- | :--- |
-| **Test Coverage** | 66 tests passing (7 test suites) |
+| **Test Coverage** | 79 tests passing (8 test suites) |
 | **Bundle Size** | ~15KB (main), ~13KB (lite) |
 | **Build Speed** | Negligible overhead on Vite builds |
 | **HMR Performance** | Instant hot reload on partial changes |
