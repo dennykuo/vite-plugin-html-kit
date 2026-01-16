@@ -122,7 +122,8 @@ const REGEX = {
   // Include 標籤: <include src="..." ... />
   // 捕獲 src 屬性、其他屬性和標籤內容（用於 slot）
   // 支援自閉合和非自閉合兩種形式
-  INCLUDE: /<include\s+src=["']([^"']+)["']\s*([^>]*?)>([\s\S]*?)<\/include>|<include\s+src=["']([^"']+)["']\s*([^>]*)\/?>/gi,
+  // (?<!\/) 負向後行斷言：確保 > 前面不是 /，避免錯誤匹配自閉合標籤
+  INCLUDE: /<include\s+src=["']([^"']+)["']\s*([^>]*?)(?<!\/)>([\s\S]*?)<\/include>|<include\s+src=["']([^"']+)["']\s*([^>]*)\/?>/gi,
 
   // 佈局繼承 (Layout Inheritance)
   // @extends('layout-path')
