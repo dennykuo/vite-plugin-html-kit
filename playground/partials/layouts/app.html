@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@yield('title', '預設標題') | {{ siteTitle }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+  <!-- 導航列 -->
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-5xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/index.html" class="text-xl font-bold text-gray-900">
+          {{ siteTitle }}
+        </a>
+        <div class="flex items-center gap-4 text-sm">
+          <a href="/index.html" class="text-gray-600 hover:text-gray-900 transition">功能展示</a>
+          <a href="/layout-demo.html" class="text-gray-600 hover:text-gray-900 transition">佈局示範</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主要內容區域 -->
+  <main class="max-w-5xl mx-auto px-6 py-8">
+    @yield('content')
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="bg-gray-900 text-gray-400 mt-auto">
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="text-center text-sm">
+        <p>&copy; 2026 {{ siteTitle }}. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
