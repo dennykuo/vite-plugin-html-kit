@@ -39,3 +39,8 @@ Thumbs.db
 .gemini/
 .claude/
 .shared/
+
+# Backup files
+*.backup
+*.bak
+*~
