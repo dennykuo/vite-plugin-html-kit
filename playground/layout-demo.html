@@ -1,0 +1,227 @@
+@extends('layouts/blog.html')
+
+@section('title')
+  佈局繼承示範
+@endsection
+
+@section('breadcrumb')
+  佈局繼承示範
+@endsection
+
+@section('page-title')
+  🎨 Laravel Blade 風格佈局繼承
+@endsection
+
+@section('meta')
+  <span class="flex items-center gap-1">
+    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+    </svg>
+    2026-01-16
+  </span>
+  <span>•</span>
+  <span class="flex items-center gap-1">
+    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+    </svg>
+    作者：{{ author }}
+  </span>
+@endsection
+
+@section('article-content')
+  <div class="prose prose-blue max-w-none">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">什麼是佈局繼承？</h2>
+
+    <p class="text-gray-600 mb-6">
+      佈局繼承讓你可以定義一個基礎模板（佈局），然後在子頁面中「繼承」這個佈局，
+      只需要定義不同的內容區塊。這個頁面使用了 <strong>三層佈局繼承</strong>：
+    </p>
+
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6 rounded-r-lg">
+      <h3 class="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        繼承層級結構
+      </h3>
+      <ol class="space-y-3 text-sm">
+        <li class="flex items-start gap-3">
+          <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold">1</span>
+          <div>
+            <strong class="text-gray-900">base.html</strong>
+            <span class="text-gray-600"> - 基礎佈局（HTML 結構、導航、頁尾）</span>
+          </div>
+        </li>
+        <li class="flex items-start gap-3 ml-6">
+          <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-blue-400 text-white rounded-full text-xs font-bold">2</span>
+          <div>
+            <strong class="text-gray-900">blog.html</strong>
+            <span class="text-gray-600"> - 繼承 base.html，添加文章版面</span>
+          </div>
+        </li>
+        <li class="flex items-start gap-3 ml-12">
+          <span class="flex-shrink-0 flex items-center justify-center w-6 h-6 bg-blue-300 text-white rounded-full text-xs font-bold">3</span>
+          <div>
+            <strong class="text-gray-900">layout-demo.html</strong>
+            <span class="text-gray-600"> - 繼承 blog.html，填入實際內容</span>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-4 mt-8">核心語法</h2>
+
+    <div class="space-y-4 mb-6">
+      <!-- @extends -->
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+          <code class="text-sm font-mono text-blue-600">@extends('path/to/layout.html')</code>
+        </div>
+        <div class="p-4 text-sm text-gray-600">
+          宣告當前頁面繼承自哪個佈局文件
+        </div>
+      </div>
+
+      <!-- @section -->
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+          <code class="text-sm font-mono text-blue-600">@section('name') ... @endsection</code>
+        </div>
+        <div class="p-4 text-sm text-gray-600">
+          定義一個內容區塊，將會填入父佈局中對應的 @yield
+        </div>
+      </div>
+
+      <!-- @yield -->
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+          <code class="text-sm font-mono text-blue-600">@yield('name', 'default')</code>
+        </div>
+        <div class="p-4 text-sm text-gray-600">
+          在佈局中定義佔位符，子頁面的 section 內容將插入此處。第二個參數為預設值。
+        </div>
+      </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-4 mt-8">程式碼示例</h2>
+
+    <div class="space-y-4">
+      <!-- 示例 1: 佈局文件 -->
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">📄 layouts/base.html</p>
+        <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;@yield('title', '預設標題')&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;nav&gt;導航列&lt;/nav&gt;
+
+  &lt;main&gt;
+    @yield('content')
+  &lt;/main&gt;
+
+  &lt;footer&gt;@yield('footer', '&copy; 2026')&lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </div>
+
+      <!-- 示例 2: 子頁面 -->
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">📄 page.html</p>
+        <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm"><code>@extends('layouts/base.html')
+
+@section('title')
+  我的頁面
+@endsection
+
+@section('content')
+  &lt;h1&gt;歡迎來到我的頁面&lt;/h1&gt;
+  &lt;p&gt;這是頁面內容...&lt;/p&gt;
+@endsection</code></pre>
+      </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-4 mt-8">功能特色</h2>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-lg border border-green-200">
+        <h3 class="font-semibold text-green-900 mb-2 flex items-center gap-2">
+          <span class="text-xl">✓</span> 多層繼承
+        </h3>
+        <p class="text-sm text-green-700">佈局可以繼承其他佈局，形成多層結構</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-5 rounded-lg border border-blue-200">
+        <h3 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+          <span class="text-xl">✓</span> 預設值支援
+        </h3>
+        <p class="text-sm text-blue-700">@yield 可設定預設值，section 未定義時使用</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-lg border border-purple-200">
+        <h3 class="font-semibold text-purple-900 mb-2 flex items-center gap-2">
+          <span class="text-xl">✓</span> 循環檢測
+        </h3>
+        <p class="text-sm text-purple-700">自動偵測循環引用，防止無限遞迴</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-lg border border-orange-200">
+        <h3 class="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+          <span class="text-xl">✓</span> Section 覆蓋
+        </h3>
+        <p class="text-sm text-orange-700">子頁面可覆蓋父佈局的 section 內容</p>
+      </div>
+    </div>
+
+  </div>
+@endsection
+
+@section('sidebar')
+  <div class="mt-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-200">
+    <h3 class="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path>
+      </svg>
+      相關資源
+    </h3>
+    <ul class="space-y-2 text-sm">
+      <li>
+        <a href="/index.html" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-2">
+          <span>→</span> 返回功能展示頁
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/dennykuo/vite-plugin-html-kit" target="_blank" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-2">
+          <span>→</span> GitHub 儲存庫
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/dennykuo/vite-plugin-html-kit#layout-inheritance--slots" target="_blank" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-2">
+          <span>→</span> 完整文檔
+        </a>
+      </li>
+    </ul>
+  </div>
+@endsection
+
+@section('footer')
+  <div class="flex items-center justify-center gap-4 text-sm">
+    <span>&copy; 2026 Vite Plugin HTML Kit</span>
+    <span>•</span>
+    <span>佈局繼承功能示範</span>
+    <span>•</span>
+    <span class="text-green-400">✓ 79 Tests Passing</span>
+  </div>
+@endsection
+
+@section('scripts')
+  <script>
+    console.log('🎨 佈局繼承示範頁面已載入');
+    console.log('這個頁面使用了三層佈局繼承：');
+    console.log('  1. base.html (基礎佈局)');
+    console.log('  2. blog.html (文章佈局，繼承 base.html)');
+    console.log('  3. layout-demo.html (本頁面，繼承 blog.html)');
+  </script>
+@endsection

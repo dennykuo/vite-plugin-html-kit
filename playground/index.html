@@ -137,6 +137,139 @@
         </div>
       </section>
 
+      <!-- 6. 組件槽位 (Component Slots) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-600 text-xs font-bold">6</span>
+            組件槽位 (Component Slots)
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@slot / @endslot</span>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600 mb-4">
+              使用 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">@slot</code> 將內容塊傳遞給可重用組件
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <!-- 卡片 1: 完整槽位 -->
+              <include src="card.html">
+                @slot('title')
+                  📦 產品功能
+                @endslot
+
+                @slot('body')
+                  <ul class="space-y-2 text-sm">
+                    <li class="flex items-center gap-2">
+                      <span class="text-green-500">✓</span> 模組化設計
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <span class="text-green-500">✓</span> 靈活的槽位系統
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <span class="text-green-500">✓</span> 支援預設內容
+                    </li>
+                  </ul>
+                @endslot
+
+                @slot('footer')
+                  <button class="text-xs bg-blue-500 text-white px-3 py-1.5 rounded hover:bg-blue-600 transition">
+                    了解更多
+                  </button>
+                @endslot
+              </include>
+
+              <!-- 卡片 2: 部分槽位（使用預設值） -->
+              <include src="card.html">
+                @slot('title')
+                  🎨 設計系統
+                @endslot
+
+                @slot('body')
+                  <p class="text-sm">
+                    這張卡片只定義了標題和內容，頁尾使用預設值顯示。
+                  </p>
+                @endslot
+              </include>
+
+              <!-- 卡片 3: 全部使用預設值 -->
+              <div class="md:col-span-2">
+                <include src="card.html" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. 佈局繼承 (Layout Inheritance) -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 text-xs font-bold">7</span>
+            佈局繼承 (Layout Inheritance)
+          </h2>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@extends / @section / @yield</span>
+        </div>
+        <div class="p-6">
+          <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-6 border border-cyan-100">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <svg class="w-12 h-12 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Laravel Blade 風格的佈局系統</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                  使用 <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">@extends</code>、
+                  <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">@section</code> 和
+                  <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">@yield</code>
+                  建立可重用的頁面佈局
+                </p>
+                <ul class="space-y-2 text-sm text-gray-700 mb-4">
+                  <li class="flex items-center gap-2">
+                    <span class="text-cyan-500">✓</span> 支援多層佈局繼承
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="text-cyan-500">✓</span> Section 可覆蓋父佈局內容
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="text-cyan-500">✓</span> Yield 支援預設值
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="text-cyan-500">✓</span> 自動偵測循環引用
+                  </li>
+                </ul>
+                <a href="/layout-demo.html"
+                   class="inline-flex items-center gap-2 text-sm bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                  </svg>
+                  查看佈局繼承示範頁面
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p class="text-xs text-gray-500 mb-2 font-medium">示例程式碼：</p>
+            <pre class="text-xs font-mono text-gray-700 overflow-x-auto"><code>@extends('layouts/app.html')
+
+@section('title')
+  我的頁面標題
+@endsection
+
+@section('content')
+  &lt;h1&gt;頁面內容&lt;/h1&gt;
+  &lt;p&gt;這是頁面的主要內容...&lt;/p&gt;
+@endsection</code></pre>
+          </div>
+        </div>
+      </section>
+
     </div>
 
   </div>
