@@ -637,130 +637,263 @@ export default function vitePluginHtmlKit(options = {}) {
   };
 
   /**
-   * 轉換 Blade 風格的邏輯標籤為 Lodash Template 語法（含快取優化）
+   * 轉換 Blade 風格的邏輯標籤為 Lodash Template 語法
    *
-   * 將 @if, @foreach, @switch 等 Blade 標籤轉換為 Lodash 可識別的 <% %> 語法
-   * 這樣可以讓開發者使用更簡潔、可讀的語法，而不需要直接寫 Lodash 模板代碼
+   * 這是模板引擎的核心轉換函數，將易讀的 Blade 語法轉換為
+   * Lodash Template 可以執行的 <% %> 語法。
    *
-   * 性能優化：
+   * 支援的 Blade 標籤：
+   * - @if / @elseif / @else / @endif - 條件判斷
+   * - @switch / @case / @default / @endswitch - Switch 語句
+   * - @foreach / @endforeach - 迴圈
+   *
+   * 效能優化：
    * - 使用 LRU Cache 儲存轉換結果
-   * - 相同的 HTML 內容會直接從快取返回，避免重複的 regex 操作
-   * - 快取命中時性能提升 50 倍以上
+   * - 相同內容直接從快取返回（提升 50 倍以上）
+   * - 特別適合開發環境的 HMR（經常重複處理相同檔案）
+   *
+   * 技術細節：
+   * - 使用 MD5 作為快取鍵（速度快、碰撞率低）
+   * - 快取有效期 5 分鐘
+   * - 最多快取 100 個不同的內容
    *
    * @param {string} html - 包含 Blade 標籤的 HTML 字串
    * @returns {string} 轉換後的 HTML（使用 Lodash Template 語法）
    *
    * @example
-   * // Input:
-   * // @if (user.isAdmin)
-   * //   <p>Admin Panel</p>
-   * // @endif
+   * // 條件判斷
+   * transformLogicTags(`
+   *   @if (user.isAdmin)
+   *     <p>管理員面板</p>
+   *   @endif
+   * `)
+   * // 返回: <% if (user.isAdmin) { %>...<% } %>
    *
-   * // Output:
-   * // <% if (user.isAdmin) { %>
-   * //   <p>Admin Panel</p>
-   * // <% } %>
+   * @example
+   * // 迴圈
+   * transformLogicTags(`
+   *   @foreach(items as item)
+   *     <li>{{ item }}</li>
+   *   @endforeach
+   * `)
+   * // 返回: <% for (let item of items) { %>...<% } %>
+   *
+   * @example
+   * // Switch 語句
+   * transformLogicTags(`
+   *   @switch(status)
+   *     @case('active')
+   *       <span>啟用</span>
+   *     @case('inactive')
+   *       <span>停用</span>
+   *   @endswitch
+   * `)
    */
   const transformLogicTags = (html) => {
-    // 🚀 性能優化：檢查快取
+    // ========================================
+    // 步驟 1: 檢查快取
+    // ========================================
     const cacheKey = hash(html);
     const cached = transformCache.get(cacheKey);
 
     if (cached !== undefined) {
-      // 快取命中，直接返回
+      // 快取命中：直接返回，無需重新轉換
       performanceStats.recordHit();
       return cached;
     }
 
-    // 快取未命中，執行轉換
+    // 快取未命中：需要執行轉換
     performanceStats.recordMiss();
 
     let processed = html;
 
-    // 1. 條件判斷 (Conditionals)
-    // @if(expression) -> <% if (expression) { %>
+    // ========================================
+    // 步驟 2: 轉換條件判斷標籤
+    // ========================================
+    // 將 Blade 的條件判斷語法轉換為 JavaScript if/else
+    //
+    // 轉換順序很重要：
+    // 1. @if 必須在 @elseif 之前處理
+    // 2. @else 不能與 @elseif 混淆
+    // 3. @endif 必須最後處理
+
     processed = processed.replace(REGEX.IF, '<% if ($1) { %>');
+    // @if(condition) -> <% if (condition) { %>
+
     processed = processed.replace(REGEX.ELSEIF, '<% } else if ($1) { %>');
+    // @elseif(condition) -> <% } else if (condition) { %>
+
     processed = processed.replace(REGEX.ELSE, '<% } else { %>');
+    // @else -> <% } else { %>
+
     processed = processed.replace(REGEX.ENDIF, '<% } %>');
+    // @endif -> <% } %>
 
-    // 2. Switch 語句 (Switch Statements)
+    // ========================================
+    // 步驟 3: 轉換 Switch 語句
+    // ========================================
+    // 使用 if/else 鏈模擬 switch 行為，原因：
+    // 1. JavaScript switch 需要 break 語句，容易出錯
+    // 2. if/else 鏈更安全，不會發生 fall-through
+    // 3. 與 Blade 的行為更一致
     //
-    // 使用 if/else 鏈模擬 switch 行為，避免 JavaScript switch 的 break 問題
-    // 使用唯一的變數名避免與用戶代碼衝突
-    //
-    // @switch(value)              -> <% { const __vphk_sw__ = (value); if (false) { %>
-    // @case(val)                  -> <% } else if (__vphk_sw__ === (val)) { %>
-    // @default                    -> <% } else { %>
-    // @endswitch                  -> <% } } %>
+    // 技巧：使用特殊變數名 __vphk_sw__ 避免與使用者代碼衝突
+    // - vphk = vite-plugin-html-kit
+    // - 雙底線前後綴降低命名衝突機率
 
-    // __vphk_sw__ = vite-plugin-html-kit switch variable
-    // 使用雙底線前後綴，降低變數名稱衝突的可能性
-    processed = processed.replace(REGEX.SWITCH, '<% { const __vphk_sw__ = ($1); if (false) { %>');
-    processed = processed.replace(REGEX.CASE, '<% } else if (__vphk_sw__ === ($1)) { %>');
-    processed = processed.replace(REGEX.BREAK, '');  // @break 在 if/else 結構中是隱含的
+    processed = processed.replace(
+      REGEX.SWITCH,
+      '<% { const __vphk_sw__ = ($1); if (false) { %>'
+    );
+    // @switch(value) -> 建立區塊作用域並儲存 switch 值
+
+    processed = processed.replace(
+      REGEX.CASE,
+      '<% } else if (__vphk_sw__ === ($1)) { %>'
+    );
+    // @case(val) -> 使用嚴格相等比較
+
+    processed = processed.replace(REGEX.BREAK, '');
+    // @break -> 移除（在 if/else 結構中不需要）
+
     processed = processed.replace(REGEX.DEFAULT, '<% } else { %>');
-    processed = processed.replace(REGEX.ENDSWITCH, '<% } } %>');
+    // @default -> else 分支
 
-    // 3. 迴圈 (Loops)
+    processed = processed.replace(REGEX.ENDSWITCH, '<% } } %>');
+    // @endswitch -> 關閉 else 和區塊作用域
+
+    // ========================================
+    // 步驟 4: 轉換迴圈標籤
+    // ========================================
+    // 支援兩種語法風格，方便不同背景的開發者：
+    // 1. Blade 風格: @foreach(items as item) - 類似 PHP
+    // 2. JavaScript 風格: @foreach(item of items) - 原生 JS
     //
-    // 支援兩種語法風格：
-    // - Blade 風格: @foreach(items as item)
-    // - JavaScript 風格: @foreach(item of items)
-    //
-    // 兩者都會被轉換為標準的 JavaScript for...of 迴圈
+    // 兩種風格都會轉換為標準的 JavaScript for...of 迴圈
+
     processed = processed.replace(REGEX.FOREACH, (match, expression) => {
       expression = expression.trim();
       let collection, item;
 
-      // 解析 "collection as item" 語法 (Blade 風格)
+      // 解析 Blade 風格: "items as item"
       if (expression.includes(' as ')) {
         [collection, item] = expression.split(' as ').map(s => s.trim());
+        return `<% for (let ${item} of ${collection}) { %>`;
       }
-      // 解析 "item of collection" 語法 (JavaScript 風格)
-      else if (expression.includes(' of ')) {
-        let parts = expression.split(' of ').map(s => s.trim());
+
+      // 解析 JavaScript 風格: "item of items"
+      if (expression.includes(' of ')) {
+        const parts = expression.split(' of ').map(s => s.trim());
         collection = parts[1];
-        item = parts[0].replace(/^let\s+|^const\s+|^var\s+/, '');  // 移除變數宣告關鍵字
-      }
-      // 如果兩種語法都不匹配，直接當作原生 for 迴圈語法
-      else {
-        return `<% for (${expression}) { %>`;
+        // 移除可能的變數宣告關鍵字（let, const, var）
+        item = parts[0].replace(/^(let|const|var)\s+/, '');
+        return `<% for (let ${item} of ${collection}) { %>`;
       }
 
-      return `<% for (let ${item} of ${collection}) { %>`;
+      // 不符合兩種語法：假設是原生 for 迴圈語法
+      // 例如: @foreach(let i = 0; i < 10; i++)
+      return `<% for (${expression}) { %>`;
     });
-    processed = processed.replace(REGEX.ENDFOREACH, '<% } %>');
 
-    // 🚀 性能優化：將結果儲存到快取
+    processed = processed.replace(REGEX.ENDFOREACH, '<% } %>');
+    // @endforeach -> <% } %>
+
+    // ========================================
+    // 步驟 5: 儲存到快取
+    // ========================================
+    // 將轉換結果存入 LRU Cache，下次相同內容可直接使用
     transformCache.set(cacheKey, processed);
 
     return processed;
   };
 
   /**
-   * 解析 @section 區塊
+   * 解析 HTML 中的 @section 區塊
    *
-   * 從 HTML 中提取所有 @section('name')...@endsection 區塊
-   * 返回一個物件，鍵為 section 名稱，值為 section 內容
+   * 從子頁面或佈局檔案中提取所有 @section 定義，
+   * 用於佈局繼承系統。
    *
-   * @param {string} html - 包含 section 定義的 HTML 字串
-   * @returns {Object} section 名稱到內容的映射
+   * Section 是佈局繼承的核心概念：
+   * - 子頁面使用 @section 定義內容區塊
+   * - 父佈局使用 @yield 顯示這些內容
+   * - 支援多層繼承（section 可以傳遞給更上層的佈局）
+   *
+   * 技術細節：
+   * - 使用 REGEX.SECTION 正則表達式匹配
+   * - 自動 trim 內容（移除前後空白）
+   * - 重置 lastIndex 避免狀態殘留（正則表達式的 /g 標誌問題）
+   * - 支援相同名稱的 section（後面的會覆蓋前面的）
+   *
+   * @param {string} html - 包含 @section 定義的 HTML 字串
+   * @returns {Object<string, string>} Section 名稱到內容的映射物件
    *
    * @example
-   * // HTML: @section('title')Home Page@endsection
-   * // Returns: { title: 'Home Page' }
+   * // 單個 section
+   * const html = `@section('title')首頁@endsection`;
+   * parseSections(html);
+   * // 返回: { title: '首頁' }
+   *
+   * @example
+   * // 多個 sections
+   * const html = `
+   *   @section('title')
+   *     部落格文章
+   *   @endsection
+   *
+   *   @section('content')
+   *     <h1>文章標題</h1>
+   *     <p>文章內容...</p>
+   *   @endsection
+   * `;
+   * parseSections(html);
+   * // 返回: {
+   * //   title: '部落格文章',
+   * //   content: '<h1>文章標題</h1>\n<p>文章內容...</p>'
+   * // }
+   *
+   * @example
+   * // Section 內容會自動 trim
+   * const html = `
+   *   @section('meta')
+   *
+   *     <meta name="description" content="...">
+   *
+   *   @endsection
+   * `;
+   * parseSections(html);
+   * // 返回: { meta: '<meta name="description" content="...">' }
+   *
+   * @example
+   * // 空的 HTML 或沒有 section
+   * parseSections('');
+   * // 返回: {}
+   *
+   * parseSections('<div>無 section</div>');
+   * // 返回: {}
    */
   const parseSections = (html) => {
     const sections = {};
-    let match;
 
-    // 重置 regex 的 lastIndex（避免狀態殘留）
+    // 確保輸入有效
+    if (!html || typeof html !== 'string') {
+      return sections;
+    }
+
+    // 重置正則表達式的 lastIndex
+    // 重要：當正則表達式有 /g 標誌時，exec() 會保留狀態
+    // 如果不重置，可能會從上次的位置開始匹配，導致遺漏結果
     REGEX.SECTION.lastIndex = 0;
 
+    let match;
+
+    // 使用 exec() 迴圈查找所有 @section 區塊
+    // exec() 會逐一返回匹配結果，直到沒有更多匹配為止
     while ((match = REGEX.SECTION.exec(html)) !== null) {
-      const name = match[1];       // section 名稱
-      const content = match[2];    // section 內容
+      const name = match[1];       // 第一個捕獲群組：section 名稱
+      const content = match[2];    // 第二個捕獲群組：section 內容
+
+      // 儲存 section 內容，並移除前後空白
+      // 如果有重複的 section 名稱，後面的會覆蓋前面的
       sections[name] = content.trim();
     }
 
