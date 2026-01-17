@@ -37,6 +37,12 @@
 - ✅ 支援單行和多行註釋
 - ✅ 在 transformLogicTags 階段移除
 
+### 7. 防止重複輸出
+- ✅ `@once...@endonce` - 防止重複輸出
+- ✅ 使用內容 hash 識別唯一區塊
+- ✅ 在 resolveIncludes 階段實現
+- ✅ 支援嵌套 partial 和條件語法集成
+
 ---
 
 ## ❌ 未實現功能（前端適用）
@@ -173,54 +179,9 @@
 
 ---
 
-#### 3. @once - 防止重複輸出
-**用途：** 確保某段代碼只輸出一次，即使 partial 被多次 include
-
-**Laravel Blade 語法：**
-
-**partial/alert.html:**
-```blade
-<div class="alert">
-  {{ message }}
-</div>
-
-@once
-  <!-- 即使 alert.html 被 include 多次，jQuery 只載入一次 -->
-  <script src="/js/jquery.js"></script>
-  <script src="/js/alert.js"></script>
-@endonce
-```
-
-**使用：**
-```blade
-<include src="alert.html" message="警告 1" />
-<include src="alert.html" message="警告 2" />
-<include src="alert.html" message="警告 3" />
-```
-
-**輸出：**
-```html
-<div class="alert">警告 1</div>
-<div class="alert">警告 2</div>
-<div class="alert">警告 3</div>
-<!-- jQuery 只出現一次 -->
-<script src="/js/jquery.js"></script>
-<script src="/js/alert.js"></script>
-```
-
-**技術細節：**
-- 需要全域追蹤已輸出的 @once 區塊
-- 使用內容 hash 或區塊 ID 識別
-- 在 resolveIncludes 階段實現
-
-**實現難度：** ⭐⭐ (中等)
-**預期工作量：** 2-3 小時
-
----
-
 ### 🟡 中優先級（有用但不緊急）
 
-#### 4. @isset/@empty - 變數檢查
+#### 2. @isset/@empty - 變數檢查
 **用途：** 檢查變數是否定義或為空
 
 **Laravel Blade 語法：**
@@ -250,7 +211,7 @@
 
 ---
 
-#### 8. @verbatim - 跳過 Blade 解析
+#### 3. @verbatim - 跳過 Blade 解析
 **用途：** 與 Vue.js、Alpine.js 等使用 `{{ }}` 語法的框架整合
 
 **Laravel Blade 語法：**
@@ -282,7 +243,7 @@
 
 ---
 
-#### 6. @includeIf/@includeWhen/@includeUnless - 條件 Include
+#### 4. @includeIf/@includeWhen/@includeUnless - 條件 Include
 **用途：** 條件性載入 partial，避免檔案不存在錯誤
 
 **Laravel Blade 語法：**
@@ -313,7 +274,7 @@
 
 ### 🟢 低優先級（可替代或較少使用）
 
-#### 7. @for/@while - 其他迴圈類型
+#### 5. @for/@while - 其他迴圈類型
 **用途：** 提供更多迴圈選項
 
 **Laravel Blade 語法：**
@@ -334,7 +295,7 @@
 
 ---
 
-#### 8. @continue/@break - 迴圈控制
+#### 6. @continue/@break - 迴圈控制
 **用途：** 控制迴圈執行
 
 **Laravel Blade 語法：**
@@ -354,7 +315,7 @@
 
 ---
 
-#### 9. @class() - 條件類名
+#### 7. @class() - 條件類名
 **用途：** 動態生成 CSS 類名
 
 **Laravel Blade 語法：**
@@ -374,7 +335,7 @@
 
 ---
 
-#### 10. @json() - JSON 輸出
+#### 8. @json() - JSON 輸出
 **用途：** 安全地輸出 JSON 資料到 JavaScript
 
 **Laravel Blade 語法：**
@@ -403,20 +364,19 @@
 
 ### 第二階段（進階功能）- 提升開發體驗
 2. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
-3. **@once** - 防止重複 ⭐⭐
-4. **@isset/@empty** - 變數檢查 ⭐⭐
-5. **@verbatim** - Vue/Alpine 整合 ⭐⭐
+3. **@isset/@empty** - 變數檢查 ⭐⭐
+4. **@verbatim** - Vue/Alpine 整合 ⭐⭐
 
-**預估工作量：** 12-16 小時
+**預估工作量：** 10-13 小時
 
 ---
 
 ### 第三階段（錦上添花）- 可選
-6. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-7. **@for/@while** - 其他迴圈 ⭐⭐
-8. **@continue/@break** - 迴圈控制 ⭐⭐
-9. **@class()** - 條件類名 ⭐⭐⭐
-10. **@json()** - JSON 輸出 ⭐
+5. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
+6. **@for/@while** - 其他迴圈 ⭐⭐
+7. **@continue/@break** - 迴圈控制 ⭐⭐
+8. **@class()** - 條件類名 ⭐⭐⭐
+9. **@json()** - JSON 輸出 ⭐
 
 **預估工作量：** 12-15 小時
 
