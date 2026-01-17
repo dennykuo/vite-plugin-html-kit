@@ -43,46 +43,26 @@
 - ✅ 在 resolveIncludes 階段實現
 - ✅ 支援嵌套 partial 和條件語法集成
 
+### 8. 迴圈元資訊
+- ✅ `loop` 變數 - 在 @foreach 和 @forelse 中自動提供
+- ✅ `loop.index` - 當前索引（從 0 開始）
+- ✅ `loop.iteration` - 當前迭代次數（從 1 開始）
+- ✅ `loop.remaining` - 剩餘迭代次數
+- ✅ `loop.count` - 陣列總數
+- ✅ `loop.first` - 是否第一個元素
+- ✅ `loop.last` - 是否最後一個元素
+- ✅ `loop.even` - 是否偶數迭代
+- ✅ `loop.odd` - 是否奇數迭代
+- ✅ `loop.depth` - 嵌套深度（從 1 開始）
+- ✅ `loop.parent` - 父迴圈的 loop 物件
+
 ---
 
 ## ❌ 未實現功能（前端適用）
 
 ### 🔴 高優先級（實用性高，建議實現）
 
-#### 1. $loop 變數 - 迴圈元資訊
-**用途：** 在迴圈中獲取當前迭代的索引、是否第一個/最後一個等資訊
-
-**Laravel Blade 語法：**
-```blade
-@foreach ($items as $item)
-  <div class="item {{ $loop->first ? 'first' : '' }} {{ $loop->last ? 'last' : '' }}">
-    <span class="index">{{ $loop->iteration }}</span>
-    <span class="total">{{ $loop->count }}</span>
-    <p>{{ $item->name }}</p>
-  </div>
-@endforeach
-```
-
-**$loop 物件屬性：**
-| 屬性 | 類型 | 描述 |
-|------|------|------|
-| `$loop->index` | int | 當前索引（從 0 開始） |
-| `$loop->iteration` | int | 當前迭代次數（從 1 開始） |
-| `$loop->remaining` | int | 剩餘迭代次數 |
-| `$loop->count` | int | 陣列總數 |
-| `$loop->first` | bool | 是否第一個元素 |
-| `$loop->last` | bool | 是否最後一個元素 |
-| `$loop->even` | bool | 是否偶數迭代 |
-| `$loop->odd` | bool | 是否奇數迭代 |
-| `$loop->depth` | int | 嵌套深度（從 1 開始） |
-| `$loop->parent` | object | 父迴圈的 $loop 物件 |
-
-**實現難度：** ⭐⭐⭐ (較高)
-**預期工作量：** 4-6 小時
-
----
-
-#### 2. @stack/@push/@prepend - CSS/JS 資源管理
+#### 1. @stack/@push/@prepend - CSS/JS 資源管理
 **用途：** 管理頁面中的 CSS 和 JavaScript，避免重複載入，支援從子頁面推送資源到佈局
 
 **Laravel Blade 語法：**
@@ -355,28 +335,21 @@
 
 ## 📊 實現優先級總結
 
-### 第一階段（核心功能）- 建議優先實現
-1. **$loop 變數** - 迴圈元資訊 ⭐⭐⭐
-
-**預估工作量：** 4-6 小時
-
----
-
-### 第二階段（進階功能）- 提升開發體驗
-2. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
-3. **@isset/@empty** - 變數檢查 ⭐⭐
-4. **@verbatim** - Vue/Alpine 整合 ⭐⭐
+### 第一階段（進階功能）- 提升開發體驗
+1. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
+2. **@isset/@empty** - 變數檢查 ⭐⭐
+3. **@verbatim** - Vue/Alpine 整合 ⭐⭐
 
 **預估工作量：** 10-13 小時
 
 ---
 
-### 第三階段（錦上添花）- 可選
-5. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-6. **@for/@while** - 其他迴圈 ⭐⭐
-7. **@continue/@break** - 迴圈控制 ⭐⭐
-8. **@class()** - 條件類名 ⭐⭐⭐
-9. **@json()** - JSON 輸出 ⭐
+### 第二階段（錦上添花）- 可選
+4. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
+5. **@for/@while** - 其他迴圈 ⭐⭐
+6. **@continue/@break** - 迴圈控制 ⭐⭐
+7. **@class()** - 條件類名 ⭐⭐⭐
+8. **@json()** - JSON 輸出 ⭐
 
 **預估工作量：** 12-15 小時
 

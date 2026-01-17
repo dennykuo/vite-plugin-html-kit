@@ -911,7 +911,18 @@ export default function vitePluginHtmlKit(options = {}) {
       // 解析 Blade 風格: "items as item"
       if (expression.includes(' as ')) {
         [collection, item] = expression.split(' as ').map(s => s.trim());
-        return `<% if (${collection} && ${collection}.length > 0) { for (let ${item} of ${collection}) { %>`;
+        return `<% if (${collection} && ${collection}.length > 0) { ` +
+          `{ const __vphk_lp__ = typeof loop !== 'undefined' ? loop : null; ` +
+          `const __vphk_ld__ = __vphk_lp__ ? __vphk_lp__.depth + 1 : 1; ` +
+          `const __vphk_lc__ = ${collection}; ` +
+          `const __vphk_ln__ = __vphk_lc__.length; ` +
+          `let __vphk_li__ = 0; ` +
+          `for (let ${item} of __vphk_lc__) { ` +
+          `const loop = { index: __vphk_li__, iteration: __vphk_li__ + 1, ` +
+          `remaining: __vphk_ln__ - __vphk_li__ - 1, count: __vphk_ln__, ` +
+          `first: __vphk_li__ === 0, last: __vphk_li__ === __vphk_ln__ - 1, ` +
+          `even: (__vphk_li__ + 1) % 2 === 0, odd: (__vphk_li__ + 1) % 2 !== 0, ` +
+          `depth: __vphk_ld__, parent: __vphk_lp__ }; __vphk_li__++; %>`;
       }
 
       // 解析 JavaScript 風格: "item of items"
@@ -919,15 +930,26 @@ export default function vitePluginHtmlKit(options = {}) {
         const parts = expression.split(' of ').map(s => s.trim());
         collection = parts[1];
         item = parts[0].replace(/^(let|const|var)\s+/, '');
-        return `<% if (${collection} && ${collection}.length > 0) { for (let ${item} of ${collection}) { %>`;
+        return `<% if (${collection} && ${collection}.length > 0) { ` +
+          `{ const __vphk_lp__ = typeof loop !== 'undefined' ? loop : null; ` +
+          `const __vphk_ld__ = __vphk_lp__ ? __vphk_lp__.depth + 1 : 1; ` +
+          `const __vphk_lc__ = ${collection}; ` +
+          `const __vphk_ln__ = __vphk_lc__.length; ` +
+          `let __vphk_li__ = 0; ` +
+          `for (let ${item} of __vphk_lc__) { ` +
+          `const loop = { index: __vphk_li__, iteration: __vphk_li__ + 1, ` +
+          `remaining: __vphk_ln__ - __vphk_li__ - 1, count: __vphk_ln__, ` +
+          `first: __vphk_li__ === 0, last: __vphk_li__ === __vphk_ln__ - 1, ` +
+          `even: (__vphk_li__ + 1) % 2 === 0, odd: (__vphk_li__ + 1) % 2 !== 0, ` +
+          `depth: __vphk_ld__, parent: __vphk_lp__ }; __vphk_li__++; %>`;
       }
 
-      // 不符合兩種語法：使用原始表達式
+      // 不符合兩種語法：使用原始表達式（不支援 loop）
       return `<% if (true) { for (${expression}) { %>`;
     });
 
-    processed = processed.replace(REGEX.EMPTY, '<% } } else { %>');
-    // @empty -> 關閉 for 和 if，開始 else
+    processed = processed.replace(REGEX.EMPTY, '<% } } } else { %>');
+    // @empty -> 關閉 for、loop 區塊作用域、if，開始 else
 
     processed = processed.replace(REGEX.ENDFORELSE, '<% } %>');
     // @endforelse -> 關閉 else
@@ -940,7 +962,17 @@ export default function vitePluginHtmlKit(options = {}) {
       // 解析 Blade 風格: "items as item"
       if (expression.includes(' as ')) {
         [collection, item] = expression.split(' as ').map(s => s.trim());
-        return `<% for (let ${item} of ${collection}) { %>`;
+        return `<% { const __vphk_lp__ = typeof loop !== 'undefined' ? loop : null; ` +
+          `const __vphk_ld__ = __vphk_lp__ ? __vphk_lp__.depth + 1 : 1; ` +
+          `const __vphk_lc__ = ${collection}; ` +
+          `const __vphk_ln__ = __vphk_lc__.length; ` +
+          `let __vphk_li__ = 0; ` +
+          `for (let ${item} of __vphk_lc__) { ` +
+          `const loop = { index: __vphk_li__, iteration: __vphk_li__ + 1, ` +
+          `remaining: __vphk_ln__ - __vphk_li__ - 1, count: __vphk_ln__, ` +
+          `first: __vphk_li__ === 0, last: __vphk_li__ === __vphk_ln__ - 1, ` +
+          `even: (__vphk_li__ + 1) % 2 === 0, odd: (__vphk_li__ + 1) % 2 !== 0, ` +
+          `depth: __vphk_ld__, parent: __vphk_lp__ }; __vphk_li__++; %>`;
       }
 
       // 解析 JavaScript 風格: "item of items"
@@ -949,16 +981,26 @@ export default function vitePluginHtmlKit(options = {}) {
         collection = parts[1];
         // 移除可能的變數宣告關鍵字（let, const, var）
         item = parts[0].replace(/^(let|const|var)\s+/, '');
-        return `<% for (let ${item} of ${collection}) { %>`;
+        return `<% { const __vphk_lp__ = typeof loop !== 'undefined' ? loop : null; ` +
+          `const __vphk_ld__ = __vphk_lp__ ? __vphk_lp__.depth + 1 : 1; ` +
+          `const __vphk_lc__ = ${collection}; ` +
+          `const __vphk_ln__ = __vphk_lc__.length; ` +
+          `let __vphk_li__ = 0; ` +
+          `for (let ${item} of __vphk_lc__) { ` +
+          `const loop = { index: __vphk_li__, iteration: __vphk_li__ + 1, ` +
+          `remaining: __vphk_ln__ - __vphk_li__ - 1, count: __vphk_ln__, ` +
+          `first: __vphk_li__ === 0, last: __vphk_li__ === __vphk_ln__ - 1, ` +
+          `even: (__vphk_li__ + 1) % 2 === 0, odd: (__vphk_li__ + 1) % 2 !== 0, ` +
+          `depth: __vphk_ld__, parent: __vphk_lp__ }; __vphk_li__++; %>`;
       }
 
-      // 不符合兩種語法：假設是原生 for 迴圈語法
+      // 不符合兩種語法：假設是原生 for 迴圈語法（不支援 loop）
       // 例如: @foreach(let i = 0; i < 10; i++)
       return `<% for (${expression}) { %>`;
     });
 
-    processed = processed.replace(REGEX.ENDFOREACH, '<% } %>');
-    // @endforeach -> <% } %>
+    processed = processed.replace(REGEX.ENDFOREACH, '<% } } %>');
+    // @endforeach -> 關閉 for 和 loop 區塊作用域
 
     // ========================================
     // 步驟 5: 儲存到快取
