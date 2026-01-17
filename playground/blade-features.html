@@ -1,0 +1,276 @@
+@extends('layouts/base.html')
+
+@section('title', '新 Blade 功能示範')
+
+@section('content')
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <header class="mb-10 text-center">
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">新 Blade 功能示範</h1>
+      <p class="text-gray-500 mt-2 text-sm">展示最新實現的 Laravel Blade 風格功能</p>
+    </header>
+
+    <!-- 1. @section 簡寫語法 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">1</span>
+          @section 簡寫語法
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          單行內容的 section 可以使用簡寫語法，不需要 @endsection
+        </p>
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <pre class="text-xs font-mono text-gray-700"><code>@section('title', '頁面標題')
+@section('class', 'bg-slate-100/30')
+
+@section('content')
+  &lt;div&gt;完整語法用於多行內容&lt;/div&gt;
+@endsection</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. @include Blade 風格 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">2</span>
+          @include Blade 風格
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          可以使用 Laravel Blade 風格的 @include，與 &lt;include&gt; 標籤共存
+        </p>
+
+        <div class="space-y-3">
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">使用 @include 語法：</p>
+            <div class="bg-indigo-50 p-3 rounded border border-indigo-100">
+              @include('content.html', { content: '透過 @include 傳遞的內容！' })
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">使用 &lt;include&gt; 標籤（兩者完全兼容）：</p>
+            <div class="bg-indigo-50 p-3 rounded border border-indigo-100">
+              <include src="content.html" content="透過標籤傳遞的內容！" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. @unless 否定條件 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">3</span>
+          @unless 否定條件
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          @unless 等同於 @if(!condition)，語義更清晰
+        </p>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
+            <p class="text-xs text-gray-500 mb-2">@unless (false)</p>
+            @unless (false)
+            <div class="flex items-center gap-2 text-green-700 font-medium">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              條件為 false，顯示此內容
+            </div>
+            @endunless
+          </div>
+
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
+            <p class="text-xs text-gray-500 mb-2">@unless (true)</p>
+            @unless (true)
+            <span class="text-red-500">不應該顯示</span>
+            @else
+            <div class="flex items-center gap-2 text-green-700 font-medium">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              條件為 true，顯示 else
+            </div>
+            @endunless
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. $loop 變數 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 text-violet-600 text-xs font-bold">4</span>
+          $loop 迴圈變數
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          @foreach 中自動提供 loop 變數，包含迴圈元資訊
+        </p>
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">基礎屬性（index, iteration, count）：</p>
+            <div class="bg-violet-50 rounded-lg p-3 border border-violet-100">
+              <ul class="space-y-1 text-sm">
+                @foreach (['Apple', 'Banana', 'Cherry'] as fruit)
+                <li class="flex items-center gap-2">
+                  <span class="font-mono text-violet-600 bg-violet-100 px-2 py-0.5 rounded text-xs">
+                    [{{ loop.index }}]
+                  </span>
+                  <span class="text-gray-700">{{ loop.iteration }}. {{ fruit }}</span>
+                  <span class="text-xs text-gray-400 ml-auto">(剩餘 {{ loop.remaining }})</span>
+                </li>
+                @endforeach
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">條件屬性（first, last, even, odd）：</p>
+            <div class="bg-violet-50 rounded-lg p-3 border border-violet-100">
+              <div class="space-y-1">
+                @foreach (['項目 A', '項目 B', '項目 C', '項目 D'] as item)
+                <div class="flex items-center gap-2 px-3 py-2 rounded {{ loop.first ? 'bg-green-100 border border-green-300' : '' }} {{ loop.last ? 'bg-red-100 border border-red-300' : '' }} {{ !loop.first && !loop.last ? (loop.even ? 'bg-blue-50' : 'bg-gray-50') : '' }}">
+                  <span class="text-sm">{{ item }}</span>
+                  <span class="text-xs text-gray-500 ml-auto">
+                    @if (loop.first)
+                      <span class="bg-green-600 text-white px-2 py-0.5 rounded text-xs">首項</span>
+                    @elseif (loop.last)
+                      <span class="bg-red-600 text-white px-2 py-0.5 rounded text-xs">末項</span>
+                    @else
+                      <span class="bg-gray-600 text-white px-2 py-0.5 rounded text-xs">{{ loop.even ? '偶數' : '奇數' }}</span>
+                    @endif
+                  </span>
+                </div>
+                @endforeach
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. @forelse 空資料處理 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">5</span>
+          @forelse 空資料處理
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          @forelse 結合迴圈和空資料處理，避免額外的 @if 檢查
+        </p>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">有資料時：</p>
+            <div class="bg-amber-50 rounded-lg p-3 border border-amber-100">
+              <ul class="space-y-1">
+                @forelse (['任務 1', '任務 2'] as task)
+                <li class="flex items-center gap-2 text-sm">
+                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  {{ task }}
+                </li>
+                @empty
+                <li class="text-gray-400 text-sm">沒有任務</li>
+                @endforelse
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">空資料時：</p>
+            <div class="bg-amber-50 rounded-lg p-3 border border-amber-100">
+              <ul class="space-y-1">
+                @forelse ([] as task)
+                <li class="flex items-center gap-2 text-sm">
+                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  {{ task }}
+                </li>
+                @empty
+                <li class="flex items-center gap-2 text-gray-400 text-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  沒有任務
+                </li>
+                @endforelse
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. @once 防止重複 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-600 text-xs font-bold">6</span>
+          @once 防止重複輸出
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          @once 確保代碼塊只輸出一次，即使 partial 被多次引入
+        </p>
+        <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+          <p class="text-xs font-medium text-gray-500 mb-2">
+            使用範例（在 partial 中定義只需載入一次的資源）：
+          </p>
+          <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded"><code>@once
+  &lt;script src="/js/chart.js"&gt;&lt;/script&gt;
+  &lt;link href="/css/chart.css" rel="stylesheet"&gt;
+@endonce</code></pre>
+          <p class="text-xs text-gray-600 mt-2">
+            即使 partial 被 include 多次，@once 區塊內的內容只會輸出一次
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. {{-- --}} Blade 註釋 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 text-xs font-bold">7</span>
+          Blade 註釋
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          使用 &#123;&#123;-- --&#125;&#125; 的註釋不會出現在最終的 HTML 中，比 &lt;!-- --&gt; 更安全
+        </p>
+        <div class="bg-cyan-50 rounded-lg p-4 border border-cyan-100">
+          <div class="space-y-3">
+            <div>
+              <p class="text-xs font-medium text-gray-500 mb-1">Blade 註釋（不會輸出）：</p>
+              <pre class="text-xs font-mono text-gray-700 bg-white p-2 rounded"><code>&#123;&#123;-- 這是 Blade 註釋，不會出現在 HTML 中 --&#125;&#125;</code></pre>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-500 mb-1">HTML 註釋（會輸出）：</p>
+              <pre class="text-xs font-mono text-gray-700 bg-white p-2 rounded"><code>&lt;!-- 這是 HTML 註釋，會出現在原始碼中 --&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+@endsection
