@@ -65,6 +65,20 @@
 - ✅ 與現有 `<include src="..." />` 語法完全共存
 - ✅ 轉換為 `<include>` 標籤後在 resolveIncludes 階段處理
 
+### 10. JSON 輸出
+- ✅ `@json(expression)` - JSON 輸出語法
+- ✅ `@json(expression, true)` - 格式化輸出（pretty print）
+- ✅ 支援物件、陣列、變數和表達式
+- ✅ 自動處理特殊字元轉義
+- ✅ 可用於 script 標籤和 HTML 屬性
+
+### 11. 變數檢查
+- ✅ `@isset(variable)...@endisset` - 檢查變數是否定義且不為 null
+- ✅ `@empty(variable)...@endempty` - 檢查變數是否為空
+- ✅ 支援深層屬性訪問（如 `user.profile.name`）
+- ✅ 支援檢查陣列、物件、字串的空值
+- ✅ 空值定義：null, undefined, false, 0, '', [], {}
+
 ---
 
 ## ❌ 未實現功能（前端適用）
@@ -170,37 +184,7 @@
 
 ### 🟡 中優先級（有用但不緊急）
 
-#### 2. @isset/@empty - 變數檢查
-**用途：** 檢查變數是否定義或為空
-
-**Laravel Blade 語法：**
-```blade
-@isset($user->name)
-  <p>{{ $user->name }}</p>
-@endisset
-
-@empty($users)
-  <p>沒有使用者</p>
-@endempty
-```
-
-**等同於：**
-```blade
-@if (isset($user->name))
-  <p>{{ $user->name }}</p>
-@endif
-
-@if (empty($users))
-  <p>沒有使用者</p>
-@endif
-```
-
-**實現難度：** ⭐⭐ (中等)
-**預期工作量：** 2 小時
-
----
-
-#### 3. @verbatim - 跳過 Blade 解析
+#### 2. @verbatim - 跳過 Blade 解析
 **用途：** 與 Vue.js、Alpine.js 等使用 `{{ }}` 語法的框架整合
 
 **Laravel Blade 語法：**
@@ -324,43 +308,31 @@
 
 ---
 
-#### 8. @json() - JSON 輸出
-**用途：** 安全地輸出 JSON 資料到 JavaScript
+## 📊 實現優先級總結
 
-**Laravel Blade 語法：**
-```blade
-<script>
-  const user = @json($user);
-  const config = @json($config, JSON_PRETTY_PRINT);
-</script>
-```
+### ✅ 已完成（2026-01-17）
+1. ✅ **@json()** - JSON 輸出 (1 小時，12 個測試)
+2. ✅ **@isset/@empty** - 變數檢查 (2 小時，15 個測試)
 
-**備註：** 前端模板通常已有 JSON 資料，較少需要
-
-**實現難度：** ⭐ (簡單)
-**預期工作量：** 1 小時
+**實際工作量：** 3 小時
 
 ---
 
-## 📊 實現優先級總結
-
 ### 第一階段（進階功能）- 提升開發體驗
 1. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
-2. **@isset/@empty** - 變數檢查 ⭐⭐
-3. **@verbatim** - Vue/Alpine 整合 ⭐⭐
+2. **@verbatim** - Vue/Alpine 整合 ⭐⭐
 
-**預估工作量：** 10-13 小時
+**預估工作量：** 8-11 小時
 
 ---
 
 ### 第二階段（錦上添花）- 可選
-4. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-5. **@for/@while** - 其他迴圈 ⭐⭐
-6. **@continue/@break** - 迴圈控制 ⭐⭐
-7. **@class()** - 條件類名 ⭐⭐⭐
-8. **@json()** - JSON 輸出 ⭐
+3. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
+4. **@for/@while** - 其他迴圈 ⭐⭐
+5. **@continue/@break** - 迴圈控制 ⭐⭐
+6. **@class()** - 條件類名 ⭐⭐⭐
 
-**預估工作量：** 12-15 小時
+**預估工作量：** 11-13 小時
 
 ---
 
