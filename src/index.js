@@ -387,6 +387,23 @@ const REGEX = {
   // </include>
 
   /**
+   * 匹配 Blade 風格的 @include 指令
+   *
+   * 語法：
+   * @include('file.html')
+   * @include('file.html', { key: 'value' })
+   * @include('file.html', ['key' => 'value'])  // PHP 風格陣列
+   *
+   * 正則說明：
+   * - @include\s* : 匹配 @include 和可選空白
+   * - \( : 匹配左括號
+   * - (['"])([^'"]+)\1 : 匹配引號包裹的檔案路徑（支援單雙引號）
+   * - (?:\s*,\s*([\s\S]*?))? : 可選的參數部分（逗號後的任意內容）
+   * - \) : 匹配右括號
+   */
+  BLADE_INCLUDE: /@include\s*\(\s*(['"])([^'"]+)\1\s*(?:,\s*([\s\S]*?))?\s*\)/gi,
+
+  /**
    * 匹配 include 標籤（自閉合和非自閉合）
    * 注意：(?<!\/) 負向後行斷言防止錯誤匹配自閉合標籤
    */
@@ -826,6 +843,77 @@ export default function vitePluginHtmlKit(options = {}) {
 
     processed = processed.replace(REGEX.BLADE_COMMENT, '');
     // {{-- 任何內容 --}} -> (空字串，完全移除)
+
+    // ========================================
+    // 步驟 1.8: 轉換 @include 為 <include> 標籤
+    // ========================================
+    // 將 Blade 風格的 @include 轉換為 <include> 標籤
+    //
+    // 轉換規則：
+    // @include('file.html') -> <include src="file.html" />
+    // @include('file.html', { key: 'value' }) -> <include src="file.html" key="{{ value }}" />
+    // @include('file.html', ['key' => 'value']) -> <include src="file.html" key="{{ value }}" />
+    //
+    // 為什麼在這裡處理：
+    // - 需要在其他 Blade 語法轉換之前（保留參數中的變數）
+    // - 轉換後的 <include> 標籤會在 resolveIncludes 階段處理
+    //
+    // 支援兩種參數語法：
+    // 1. JavaScript 物件語法: { key: 'value' }
+    // 2. PHP 陣列語法: ['key' => 'value']
+    processed = processed.replace(REGEX.BLADE_INCLUDE, (match, quote, filePath, params) => {
+      // 如果沒有參數，返回簡單的自閉合標籤
+      if (!params || params.trim() === '') {
+        return `<include src="${filePath}" />`;
+      }
+
+      // 處理參數：將 PHP 陣列風格或 JS 物件轉換為 HTML 屬性
+      let attributes = '';
+      params = params.trim();
+
+      // 移除外層的 { } 或 [ ]
+      if ((params.startsWith('{') && params.endsWith('}')) ||
+          (params.startsWith('[') && params.endsWith(']'))) {
+        params = params.slice(1, -1).trim();
+      }
+
+      // 將 PHP 陣列語法 'key' => 'value' 轉換為 JS 物件語法 key: 'value'
+      // 支援單引號和雙引號
+      params = params.replace(/(['"])(\w+)\1\s*=>\s*/g, '$2: ');
+
+      // 解析參數對
+      // 支援字串、數字、布林值、變數和陣列
+      const paramPairs = [];
+      const paramRegex = /(\w+)\s*:\s*(?:(\[[\s\S]*?\])|(['"])((?:(?!\3).)*)\3|(true|false|\d+|[\w.]+))/g;
+      let paramMatch;
+
+      while ((paramMatch = paramRegex.exec(params)) !== null) {
+        const key = paramMatch[1];
+        const arrayValue = paramMatch[2];
+        const quote = paramMatch[3];
+        const stringValue = paramMatch[4];
+        const otherValue = paramMatch[5];
+
+        let value;
+        if (arrayValue !== undefined) {
+          // 陣列值：直接使用
+          value = arrayValue;
+        } else if (stringValue !== undefined) {
+          // 字串值：保留引號
+          value = `${quote}${stringValue}${quote}`;
+        } else {
+          // 變數、數字或布林值：不加引號
+          value = otherValue;
+        }
+
+        // 使用 {{ }} 包裹值，這樣在 include 處理時會被評估
+        paramPairs.push(`${key}="{{ ${value} }}"`);
+      }
+
+      attributes = paramPairs.join(' ');
+
+      return `<include src="${filePath}" ${attributes} />`;
+    });
 
     // ========================================
     // 步驟 2: 轉換條件判斷標籤

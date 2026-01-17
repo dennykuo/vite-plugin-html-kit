@@ -56,6 +56,14 @@
 - ✅ `loop.depth` - 嵌套深度（從 1 開始）
 - ✅ `loop.parent` - 父迴圈的 loop 物件
 
+### 9. Blade 風格的 Include
+- ✅ `@include('file.html')` - Blade 風格的 include 語法
+- ✅ `@include('file.html', { key: 'value' })` - 傳遞參數（JS 物件語法）
+- ✅ `@include('file.html', ['key' => 'value'])` - 傳遞參數（PHP 陣列語法）
+- ✅ 支援字串、數字、布林值、變數和陣列參數
+- ✅ 與現有 `<include src="..." />` 語法完全共存
+- ✅ 轉換為 `<include>` 標籤後在 resolveIncludes 階段處理
+
 ---
 
 ## ❌ 未實現功能（前端適用）
