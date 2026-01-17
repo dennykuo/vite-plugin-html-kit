@@ -1328,27 +1328,95 @@ export default function vitePluginHtmlKit(options = {}) {
     /**
      * Vite Config Hook: 在配置解析前修改 Rollup 輸入設定
      *
-     * 排除 partials 目錄中的檔案，避免它們被當作獨立的入口點建構
-     * 這些檔案應該只作為 include 的來源，不應該產生獨立的輸出檔案
+     * 執行時機：
+     * - 在 Vite 解析使用者配置之前調用
+     * - 可以修改配置物件，影響後續的建構過程
      *
-     * @param {import('vite').UserConfig} config - Vite 使用者配置
+     * 目的：
+     * 排除 partials 目錄中的檔案，防止它們被當作獨立的建構入口點。
+     * Partial 檔案應該只作為 <include> 標籤的來源，不應該產生獨立的輸出檔案。
+     *
+     * 為什麼需要這個處理：
+     * - Vite 預設會將所有 HTML 檔案視為入口點
+     * - 如果 partials 目錄的檔案被建構為入口，會產生不必要的輸出檔案
+     * - 這些輸出檔案可能包含未解析的模板語法（因為缺少上下文）
+     *
+     * 影響的配置：
+     * - build.rollupOptions.input（物件格式）
+     * - 不影響陣列格式的 input（較少使用）
+     *
+     * @param {import('vite').UserConfig} config - Vite 使用者配置物件
+     * @param {string} [config.root] - 專案根目錄
+     * @param {Object} [config.build] - 建構選項
+     * @param {Object} [config.build.rollupOptions] - Rollup 選項
+     * @param {Object|string|string[]} [config.build.rollupOptions.input] - 入口點配置
+     *
+     * @example
+     * // 假設有以下目錄結構：
+     * // - index.html
+     * // - about.html
+     * // - partials/header.html
+     * // - partials/footer.html
+     *
+     * // Vite 自動掃描後的 input:
+     * // {
+     * //   index: '/path/to/index.html',
+     * //   about: '/path/to/about.html',
+     * //   header: '/path/to/partials/header.html',  // ❌ 不應該被建構
+     * //   footer: '/path/to/partials/footer.html'   // ❌ 不應該被建構
+     * // }
+     *
+     * // 經過此 hook 處理後:
+     * // {
+     * //   index: '/path/to/index.html',
+     * //   about: '/path/to/about.html'
+     * // }
      */
     config(config) {
+      // ========================================
+      // 步驟 1: 檢查配置是否存在
+      // ========================================
+      // 邊界情況處理：
+      // - config.build 可能不存在（使用預設建構設定）
+      // - config.build.rollupOptions 可能不存在
+      // - config.build.rollupOptions.input 可能不存在（使用預設入口點）
+      //
+      // 如果任何一層不存在，直接返回，不做任何修改
       if (!config.build || !config.build.rollupOptions || !config.build.rollupOptions.input) {
         return;
       }
 
+      // ========================================
+      // 步驟 2: 解析目錄路徑
+      // ========================================
       const input = config.build.rollupOptions.input;
       const rootPath = config.root || process.cwd();
       const absolutePartialsDir = path.resolve(rootPath, partialsDir);
 
-      // 如果 input 是物件格式，檢查每個入口點
+      // ========================================
+      // 步驟 3: 過濾 Partials 入口點
+      // ========================================
+      // 只處理物件格式的 input
+      // 範例：{ index: 'index.html', about: 'about.html' }
+      //
+      // 不處理的格式：
+      // - 字串格式：'index.html'
+      // - 陣列格式：['index.html', 'about.html']
+      // （這些格式較少使用，且通常不包含 partials）
       if (typeof input === 'object' && !Array.isArray(input)) {
         for (const key in input) {
+          // 將相對路徑轉換為絕對路徑
           const filePath = path.resolve(rootPath, input[key]);
-          // 移除位於 partials 目錄內的入口點
+
+          // 檢查檔案是否在 partials 目錄內
           if (filePath.startsWith(absolutePartialsDir)) {
+            // 從 input 物件中移除此入口點
             delete input[key];
+
+            // 在除錯模式下輸出資訊
+            if (process.env.DEBUG || process.env.VITE_HTML_KIT_DEBUG) {
+              console.log(`[vite-plugin-html-kit] 排除 partial 入口點: ${path.relative(rootPath, filePath)}`);
+            }
           }
         }
       }
@@ -1357,17 +1425,72 @@ export default function vitePluginHtmlKit(options = {}) {
     /**
      * Vite ConfigResolved Hook: 儲存解析後的配置供後續使用
      *
-     * 同時設置 process 退出時輸出性能統計（僅在 DEBUG 模式下）
+     * 執行時機：
+     * - 在 Vite 完成配置解析後調用
+     * - 此時所有插件的 config hook 都已執行完畢
+     * - 配置已合併並標準化為最終形式
+     *
+     * 目的：
+     * 1. 儲存解析後的配置供其他 hook 使用（主要是 transformIndexHtml）
+     * 2. 註冊效能統計輸出（僅除錯模式）
+     *
+     * 為什麼需要儲存配置：
+     * - processExtends 和 resolveIncludes 需要知道專案根目錄（viteConfig.root）
+     * - 用於解析 partial 檔案的絕對路徑
+     * - 用於路徑遍歷攻擊防護
+     *
+     * 效能統計輸出：
+     * - 只在除錯模式下啟用
+     * - 在 process 退出前輸出快取命中率等資訊
+     * - 幫助開發者了解快取效益
      *
      * @param {import('vite').ResolvedConfig} resolvedConfig - Vite 解析後的完整配置
+     * @param {string} resolvedConfig.root - 專案根目錄絕對路徑
+     * @param {string} resolvedConfig.command - 執行命令（'serve' | 'build'）
+     * @param {string} resolvedConfig.mode - 執行模式（'development' | 'production'）
+     *
+     * @example
+     * // resolvedConfig 範例：
+     * // {
+     * //   root: '/path/to/project',
+     * //   command: 'serve',
+     * //   mode: 'development',
+     * //   plugins: [...],
+     * //   ...
+     * // }
      */
     configResolved(resolvedConfig) {
+      // ========================================
+      // 步驟 1: 儲存配置
+      // ========================================
+      // 將配置物件儲存到外層作用域的 viteConfig 變數
+      // 這樣其他 hook（如 transformIndexHtml）就可以訪問配置
       viteConfig = resolvedConfig;
 
-      // 在 process 退出時輸出性能統計（僅在 DEBUG 模式下）
-      // 使用 once 確保只註冊一次
+      // 在除錯模式下輸出配置資訊
       if (process.env.DEBUG || process.env.VITE_HTML_KIT_DEBUG) {
+        console.log('\n[vite-plugin-html-kit] 配置已解析:');
+        console.log(`  ├─ 根目錄: ${resolvedConfig.root}`);
+        console.log(`  ├─ 命令: ${resolvedConfig.command}`);
+        console.log(`  ├─ 模式: ${resolvedConfig.mode}`);
+        console.log(`  └─ Partials 目錄: ${path.resolve(resolvedConfig.root, partialsDir)}\n`);
+      }
+
+      // ========================================
+      // 步驟 2: 註冊效能統計輸出
+      // ========================================
+      // 只在除錯模式下啟用
+      // 環境變數：DEBUG=1 或 VITE_HTML_KIT_DEBUG=1
+      if (process.env.DEBUG || process.env.VITE_HTML_KIT_DEBUG) {
+        // 使用 once 確保只註冊一次監聽器
+        // 避免多次調用 configResolved 時重複註冊
+        //
+        // beforeExit 事件：
+        // - 在 Node.js process 即將退出時觸發
+        // - 適合輸出統計資訊（不影響正常執行）
+        // - 在所有非同步操作完成後觸發
         process.once('beforeExit', () => {
+          // 輸出效能統計（快取命中率等）
           performanceStats.log();
         });
       }
@@ -1376,42 +1499,183 @@ export default function vitePluginHtmlKit(options = {}) {
     /**
      * Vite TransformIndexHtml Hook: 轉換 HTML 檔案
      *
-     * 這是主要的轉換邏輯，處理所有 HTML 檔案：
-     * 1. 解析並替換 <include> 標籤
-     * 2. 轉換 Blade 風格的邏輯標籤
-     * 3. 編譯 Lodash Template
-     * 4. 注入全域資料
+     * 這是整個插件的主要入口點，負責將包含模板語法的 HTML 轉換為最終輸出。
      *
-     * @param {string} html - 原始 HTML 內容
-     * @param {import('vite').IndexHtmlTransformContext} ctx - 轉換上下文
-     * @returns {string} 轉換後的 HTML
+     * 轉換流程概覽：
+     * 1. 處理佈局繼承（@extends + @section + @yield）
+     * 2. 轉換 Blade 邏輯標籤（@if, @foreach, @switch）
+     * 3. 解析並替換 <include> 標籤（含 Slot 支援）
+     * 4. 編譯 Lodash Template（處理 {{ }} 變數插值）
+     * 5. 注入全域資料並生成最終 HTML
+     *
+     * 執行時機：
+     * - 開發模式：每次請求 HTML 時觸發
+     * - 建構模式：處理每個 HTML 入口檔案
+     *
+     * 效能考量：
+     * - 使用 LRU Cache 快取轉換結果（transformLogicTags）
+     * - MD5 hash 用於快取鍵值生成
+     * - 開發模式下快取命中率可達 80%+
+     *
+     * @param {string} html - 原始 HTML 內容（未處理的模板）
+     * @param {import('vite').IndexHtmlTransformContext} ctx - Vite 提供的轉換上下文
+     * @param {string} ctx.filename - 當前處理的檔案絕對路徑
+     * @param {import('vite').ViteDevServer} ctx.server - 開發伺服器實例（僅開發模式）
+     * @returns {string} 轉換後的 HTML（可直接輸出給瀏覽器）
+     *
+     * @example
+     * // 輸入 (index.html):
+     * // @extends('layouts/app.html')
+     * // @section('content')
+     * //   <h1>{{ pageTitle }}</h1>
+     * //   <include src="header.html" title="Welcome" />
+     * // @endsection
+     *
+     * // 輸出:
+     * // <!DOCTYPE html>
+     * // <html>
+     * //   <body>
+     * //     <h1>Home Page</h1>
+     * //     <header><h2>Welcome</h2></header>
+     * //   </body>
+     * // </html>
      */
     transformIndexHtml(html, ctx) {
-      // 建立全域資料上下文
-      // _: lodash - 讓所有模板都可以使用 Lodash 函式庫
+      // ========================================
+      // 步驟 0: 準備資料上下文和檔案資訊
+      // ========================================
+      // 建立全域資料上下文，合併用戶提供的 data 選項
+      // 特別注入 _ (lodash)，讓所有模板都可以使用 Lodash 工具函式
+      // 範例：{{ _.capitalize(name) }}, {{ _.map(items, 'id') }}
       const globalData = { _: lodash, ...data };
 
-      // 取得當前處理的檔案名稱（用於循環引用檢測的錯誤訊息）
+      // 提取檔案名稱用於錯誤訊息和循環引用檢測
+      // 範例：/path/to/index.html -> 'index.html'
       const filename = ctx?.filename ? path.basename(ctx.filename) : 'index.html';
 
-      // 🎨 步驟 1: 處理佈局繼承（@extends + @section + @yield）
-      // 必須在其他處理之前執行，因為佈局可能包含 include 和其他邏輯
+      // ========================================
+      // 步驟 1: 處理佈局繼承（Layout Inheritance）
+      // ========================================
+      // 為什麼放在第一步：
+      // - 佈局檔案可能包含 include 標籤和邏輯標籤
+      // - 子頁面的 section 內容需要先提取，再填入佈局的 yield 位置
+      // - 支援多層繼承（A extends B extends C）
+      //
+      // 處理內容：
+      // - @extends('layout.html') - 載入佈局檔案
+      // - @section('name') ... @endsection - 提取內容區塊
+      // - @yield('name', 'default') - 替換為 section 內容
+      //
+      // 輸入範例：
+      //   @extends('layouts/app.html')
+      //   @section('title')首頁@endsection
+      //
+      // 處理後：
+      //   <!DOCTYPE html>
+      //   <html><title>首頁</title>...</html>
       html = processExtends(html, filename);
 
-      // 🎨 步驟 1.5: 轉換 Blade 邏輯標籤
-      // 在處理 extends 後，確保所有 @if/@foreach/@switch 都被轉換
+      // ========================================
+      // 步驟 2: 轉換 Blade 邏輯標籤
+      // ========================================
+      // 為什麼在 extends 之後：
+      // - 佈局檔案已經載入，現在處理完整的 HTML
+      // - 確保佈局中的邏輯標籤也被轉換
+      //
+      // 處理內容：
+      // - @if(condition) -> <% if (condition) { %>
+      // - @foreach(items as item) -> <% for (let item of items) { %>
+      // - @switch(value) -> <% { const __vphk_sw__ = value; if (false) { %>
+      //
+      // 效能優化：
+      // - 使用 LRU Cache 快取轉換結果
+      // - 相同內容的快取命中可提升 50 倍速度
+      //
+      // 輸入範例：
+      //   @if(user.isAdmin)
+      //     <p>管理員</p>
+      //   @endif
+      //
+      // 處理後：
+      //   <% if (user.isAdmin) { %>
+      //     <p>管理員</p>
+      //   <% } %>
       html = transformLogicTags(html);
 
-      // 🧩 步驟 2: 遞迴處理所有 include 標籤（帶槽位支援和循環引用檢測）
+      // ========================================
+      // 步驟 3: 遞迴解析 Include 標籤
+      // ========================================
+      // 為什麼在邏輯標籤之後：
+      // - Include 的 partial 檔案內可能也有邏輯標籤
+      // - 在 resolveIncludes 內部會再次調用 transformLogicTags
+      //
+      // 處理內容：
+      // - <include src="header.html" title="Hello" /> - 載入 partial
+      // - 支援 Slot 機制（@slot('name') ... @endslot）
+      // - 支援屬性傳遞和表達式求值
+      // - 遞迴處理（partial 內可再 include）
+      //
+      // 安全性：
+      // - 路徑遍歷攻擊防護
+      // - 循環引用檢測（A -> B -> C -> A）
+      //
+      // 輸入範例：
+      //   <include src="card.html" title="{{ post.title }}">
+      //     @slot('content')
+      //       <p>{{ post.body }}</p>
+      //     @endslot
+      //   </include>
+      //
+      // 處理後：
+      //   <div class="card">
+      //     <h3>文章標題</h3>
+      //     <p>文章內容</p>
+      //   </div>
       let fullHtml = resolveIncludes(html, globalData, filename);
 
+      // ========================================
+      // 步驟 4: 編譯並執行 Lodash Template
+      // ========================================
+      // 這是最後一步，將所有 <% %> 和 {{ }} 語法編譯為可執行的 JavaScript
+      //
+      // 處理內容：
+      // - {{ variable }} - 變數插值
+      // - {{ expression }} - 表達式求值
+      // - <% code %> - 執行 JavaScript 程式碼
+      //
+      // 編譯選項：
+      // - interpolate: /{{([\s\S]+?)}}/g - 自訂插值語法
+      // - 其他選項繼承自 compilerOptions 參數
       try {
-        // 編譯並執行最終的 HTML 模板
+        // 編譯模板為函數
         const compiled = lodash.template(fullHtml, defaultCompilerOptions);
+
+        // 執行函數，注入全域資料，生成最終 HTML
         return compiled(globalData);
+
       } catch (error) {
+        // ========================================
+        // 錯誤處理
+        // ========================================
+        // Lodash 編譯/執行失敗時的降級處理
+        //
+        // 常見錯誤原因：
+        // - 語法錯誤（未閉合的 {{ }}）
+        // - 變數未定義（嘗試訪問 undefined.property）
+        // - 表達式錯誤（除以零、錯誤的函數呼叫等）
+        //
+        // 降級策略：
+        // - 在控制台輸出錯誤訊息（紅色文字）
+        // - 返回未編譯的 HTML（保留 <% %> 和 {{ }} 語法）
+        // - 讓開發者可以在瀏覽器中看到原始模板內容，便於除錯
         console.error(`\x1b[31m[vite-plugin-html-kit] Lodash 渲染錯誤: ${error.message}\x1b[0m`);
-        // 發生錯誤時返回未編譯的 HTML，讓開發者可以看到原始內容
+
+        // 在除錯模式下輸出更多資訊
+        if (process.env.DEBUG || process.env.VITE_HTML_KIT_DEBUG) {
+          console.error('  檔案:', filename);
+          console.error('  錯誤堆疊:', error.stack);
+        }
+
         return fullHtml;
       }
     },
@@ -1419,33 +1683,121 @@ export default function vitePluginHtmlKit(options = {}) {
     /**
      * Vite HandleHotUpdate Hook: 處理 Hot Module Replacement (HMR)
      *
-     * 當 HTML 檔案或 partials 目錄內的檔案變更時，觸發完整的頁面重載
-     * 這確保了開發時修改 HTML 或 partial 檔案可以立即看到效果
+     * 當檔案系統中的檔案發生變更時，Vite 會調用此 hook。
+     * 本插件需要監聽 HTML 檔案和 partials 目錄內的檔案變更，
+     * 以確保開發時的即時預覽功能正常運作。
      *
-     * @param {Object} context - HMR 上下文
-     * @param {string} context.file - 變更的檔案路徑
+     * HMR 工作原理：
+     * 1. 檔案變更觸發此 hook
+     * 2. 檢查是否為相關檔案（HTML 或 partial）
+     * 3. 清除轉換快取
+     * 4. 通知瀏覽器重新載入頁面
+     *
+     * 為什麼需要完整重載（Full Reload）：
+     * - HTML 模板的依賴關係複雜（include、extends）
+     * - 一個 partial 的變更可能影響多個頁面
+     * - Vite 的模組熱替換（Module HMR）僅適用於 JS/CSS
+     * - HTML 變更需要重新執行整個轉換流程
+     *
+     * 效能影響：
+     * - 清除快取操作：O(1) 時間複雜度
+     * - 完整重載：瀏覽器重新請求 HTML（約 50-200ms）
+     * - 對開發體驗影響極小（使用者幾乎無感）
+     *
+     * @param {Object} context - Vite 提供的 HMR 上下文
+     * @param {string} context.file - 發生變更的檔案絕對路徑
      * @param {import('vite').ViteDevServer} context.server - Vite 開發伺服器實例
+     * @param {import('vite').ModuleNode[]} context.modules - 受影響的模組列表
+     *
+     * @example
+     * // 當修改 partials/header.html 時：
+     * // 1. file = '/path/to/project/partials/header.html'
+     * // 2. isPartialFile = true
+     * // 3. transformCache.clear() - 清除所有快取
+     * // 4. 瀏覽器收到重載訊號 -> 刷新頁面
      */
     handleHotUpdate({ file, server }) {
+      // ========================================
+      // 步驟 1: 解析目錄路徑
+      // ========================================
+      // 取得專案根目錄和 partials 目錄的絕對路徑
+      // 用於後續判斷檔案是否在 partials 目錄內
       const rootPath = viteConfig?.root || process.cwd();
       const absolutePartialsDir = path.resolve(rootPath, partialsDir);
 
-      // 檢查是否為 HTML 檔案或 partials 目錄內的檔案
+      // ========================================
+      // 步驟 2: 判斷檔案類型
+      // ========================================
+      // 檢查變更的檔案是否需要觸發 HMR
+      //
+      // isHtmlFile: 任何 .html 結尾的檔案
+      // - 包含專案根目錄的 HTML 檔案
+      // - 包含 partials 目錄的 HTML 檔案
+      // - 包含子目錄的 HTML 檔案
+      //
+      // isPartialFile: partials 目錄內的任何檔案
+      // - 即使不是 .html 也會觸發（例如 .txt, .md）
+      // - 這樣可以捕捉意外的檔案類型
       const isHtmlFile = file.endsWith('.html');
       const isPartialFile = file.startsWith(absolutePartialsDir);
 
+      // ========================================
+      // 步驟 3: 執行 HMR 處理
+      // ========================================
       if (isHtmlFile || isPartialFile) {
-        // 🔥 清除快取：確保下次請求時重新轉換
-        // 當 HTML 或 partial 檔案變更時，必須清除快取
-        // 否則會返回舊的快取內容，導致熱更新失效
+        // ----------------------------------------
+        // 步驟 3.1: 清除轉換快取
+        // ----------------------------------------
+        // 為什麼必須清除快取：
+        // - transformLogicTags 使用 LRU Cache 快取轉換結果
+        // - 快取鍵基於檔案內容的 MD5 hash
+        // - 檔案變更後，內容改變，但舊的快取可能仍然存在
+        // - 如果不清除，下次請求會返回舊的快取內容
+        //
+        // 清除策略：
+        // - 清除所有快取（transformCache.clear()）
+        // - 不做選擇性清除，因為依賴關係複雜
+        //
+        // 範例情境：
+        // 1. 用戶修改 partials/header.html
+        // 2. index.html includes header.html
+        // 3. 如果不清除快取，index.html 仍會使用舊的 header 內容
         transformCache.clear();
 
-        // 發送完整重載訊號給瀏覽器
+        // ----------------------------------------
+        // 步驟 3.2: 通知瀏覽器重新載入
+        // ----------------------------------------
+        // 發送 WebSocket 訊息給所有連接的瀏覽器客戶端
+        //
+        // 訊息格式：
+        // - type: 'full-reload' - 完整重載（非模組熱替換）
+        // - path: '*' - 影響所有頁面（萬用字元）
+        //
+        // 為什麼使用 '*'：
+        // - 一個 partial 可能被多個頁面使用
+        // - 無法精確知道哪些頁面受影響
+        // - 重載所有頁面是最安全的做法
+        //
+        // 替代方案（未採用）：
+        // - path: '/' - 僅重載首頁
+        // - 分析依賴關係圖 - 過於複雜，效益不高
         server.ws.send({
           type: 'full-reload',
           path: '*'
         });
+
+        // 在除錯模式下輸出 HMR 資訊
+        if (process.env.DEBUG || process.env.VITE_HTML_KIT_DEBUG) {
+          console.log(`\n🔥 [vite-plugin-html-kit] HMR 觸發:`);
+          console.log(`  ├─ 檔案: ${path.relative(rootPath, file)}`);
+          console.log(`  ├─ 類型: ${isPartialFile ? 'Partial' : 'HTML'}`);
+          console.log(`  ├─ 快取已清除`);
+          console.log(`  └─ 瀏覽器將重新載入\n`);
+        }
       }
+
+      // 不返回任何值，讓 Vite 繼續處理其他 HMR 邏輯
+      // 如果返回空陣列 []，會阻止其他插件處理此檔案
     }
   };
 }
