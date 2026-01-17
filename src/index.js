@@ -222,6 +222,78 @@ const REGEX = {
   BLADE_COMMENT: /\{\{--[\s\S]*?--\}\}/g,
 
   // ====================================================================
+  // 📌 JSON 輸出 (JSON Output)
+  // ====================================================================
+  // 將 JavaScript 物件或變數轉換為 JSON 字串輸出
+  //
+  // 用途：
+  // - 在 <script> 標籤中安全地輸出資料
+  // - 將伺服器資料傳遞給前端 JavaScript
+  //
+  // 語法：
+  // @json(expression)           -> <%= JSON.stringify(expression) %>
+  // @json(expression, true)     -> <%= JSON.stringify(expression, null, 2) %>
+  // @json(expression, false)    -> <%= JSON.stringify(expression) %>
+  //
+  // 範例：
+  // <script>
+  //   const user = @json(user);
+  //   const config = @json(config, true);  // 格式化輸出
+  // </script>
+  //
+  // 正則說明：
+  // - @json\s* : 匹配 @json 和可選空白
+  // - \( : 匹配左括號
+  // - ([\s\S]*?) : 非貪婪匹配第一個參數（表達式）
+  // - (?:\s*,\s*(true|false))? : 可選的第二個參數（格式化標記）
+  // - \) : 匹配右括號
+  //
+  // 注意：支援巢狀括號，例如 @json(items.filter(x => x.active))
+
+  /** 匹配 @json(expression) 或 @json(expression, pretty) */
+  JSON: /@json\s*\(([\s\S]*?)(?:\s*,\s*(true|false))?\s*\)/gi,
+
+  // ====================================================================
+  // 📌 變數檢查 (Variable Checks)
+  // ====================================================================
+  // 檢查變數是否存在或為空
+  //
+  // 用途：
+  // - @isset: 檢查變數是否定義且不為 null
+  // - @empty: 檢查變數是否為空（false, 0, '', null, undefined, []）
+  //
+  // 語法：
+  // @isset(variable)...@endisset -> if (typeof variable !== 'undefined' && variable !== null)
+  // @empty(variable)...@endempty -> if (!variable || (Array.isArray(variable) && variable.length === 0))
+  //
+  // 範例：
+  // @isset(user.name)
+  //   <p>{{ user.name }}</p>
+  // @endisset
+  //
+  // @empty(users)
+  //   <p>沒有使用者</p>
+  // @endempty
+  //
+  // 正則說明：
+  // - @isset\s* : 匹配 @isset 和可選空白
+  // - \( : 匹配左括號
+  // - ([\s\S]*?) : 非貪婪匹配表達式
+  // - \) : 匹配右括號
+
+  /** 匹配 @isset(expression) */
+  ISSET: /@isset\s*\(([\s\S]*?)\)/gi,
+
+  /** 匹配 @endisset */
+  ENDISSET: /@endisset/gi,
+
+  /** 匹配 @empty(expression) - 變數檢查 */
+  EMPTY_CHECK: /@empty\s*\(([\s\S]*?)\)/gi,
+
+  /** 匹配 @endempty */
+  ENDEMPTY: /@endempty/gi,
+
+  // ====================================================================
   // 📌 條件判斷語句 (Conditionals)
   // ====================================================================
   // 支援 Blade 風格的條件判斷語法
@@ -857,6 +929,47 @@ export default function vitePluginHtmlKit(options = {}) {
     // {{-- 任何內容 --}} -> (空字串，完全移除)
 
     // ========================================
+    // 步驟 1.6: 轉換 @json() 為 JSON.stringify()
+    // ========================================
+    // 將 @json() 語法轉換為 Lodash template 的輸出語法
+    //
+    // 轉換規則：
+    // @json(expression)        -> {{ JSON.stringify(expression) }}
+    // @json(expression, true)  -> {{ JSON.stringify(expression, null, 2) }}
+    // @json(expression, false) -> {{ JSON.stringify(expression) }}
+    //
+    // 為什麼在這裡處理：
+    // - 需要在 Blade 註釋移除之後（避免註釋內的 @json 被處理）
+    // - 轉換為 {{ }} 語法，與其他變數插值一致
+    // - 需要在 @include 之前（保持轉換順序清晰）
+    //
+    // 為什麼使用 {{ }} 而不是 <%= %>：
+    // - plugin 已設置 interpolate: /{{([\s\S]+?)}}/g
+    // - {{ }} 是 interpolate 語法，會輸出內容
+    // - <%= %> 在自定義 interpolate 後不再工作
+    //
+    // 範例轉換：
+    // <script>
+    //   const user = @json(user);
+    // </script>
+    // ->
+    // <script>
+    //   const user = {{ JSON.stringify(user) }};
+    // </script>
+    processed = processed.replace(REGEX.JSON, (match, expression, pretty) => {
+      // 移除表達式前後的空白
+      expression = expression.trim();
+
+      // 如果第二個參數是 true，使用格式化輸出
+      if (pretty === 'true') {
+        return `{{ JSON.stringify(${expression}, null, 2) }}`;
+      }
+
+      // 預設使用緊湊格式
+      return `{{ JSON.stringify(${expression}) }}`;
+    });
+
+    // ========================================
     // 步驟 1.8: 轉換 @include 為 <include> 標籤
     // ========================================
     // 將 Blade 風格的 @include 轉換為 <include> 標籤
@@ -933,9 +1046,47 @@ export default function vitePluginHtmlKit(options = {}) {
     // 將 Blade 的條件判斷語法轉換為 JavaScript if/else
     //
     // 轉換順序很重要：
-    // 1. @if/@unless 必須在 @elseif 之前處理
-    // 2. @else 不能與 @elseif 混淆
-    // 3. @endif/@endunless 必須最後處理
+    // 1. @isset/@empty 必須最先處理（特殊的條件檢查）
+    // 2. @if/@unless 必須在 @elseif 之前處理
+    // 3. @else 不能與 @elseif 混淆
+    // 4. @endif/@endunless/@endisset/@endempty 必須最後處理
+
+    // 先處理 @isset - 檢查變數是否定義且不為 null
+    processed = processed.replace(REGEX.ISSET, (match, expression) => {
+      expression = (expression || '').trim();
+      // 使用輔助函數檢查變數是否存在
+      // 支援深層屬性訪問，如 user.profile.name
+      return `<% if ((function() {
+        try {
+          const val = ${expression};
+          return typeof val !== 'undefined' && val !== null;
+        } catch (e) {
+          return false;
+        }
+      })()) { %>`;
+    });
+    // @isset(variable) -> <% if (typeof variable !== 'undefined' && variable !== null) { %>
+
+    processed = processed.replace(REGEX.ENDISSET, '<% } %>');
+    // @endisset -> <% } %>
+
+    // 處理 @empty - 檢查變數是否為空
+    processed = processed.replace(REGEX.EMPTY_CHECK, (match, expression) => {
+      expression = (expression || '').trim();
+      // 檢查空值：null, undefined, false, 0, '', 空陣列
+      return `<% if ((function() {
+        try {
+          const val = ${expression};
+          return !val || (Array.isArray(val) && val.length === 0) || (typeof val === 'object' && val !== null && Object.keys(val).length === 0);
+        } catch (e) {
+          return true;
+        }
+      })()) { %>`;
+    });
+    // @empty(variable) -> <% if (!variable || (Array.isArray(variable) && variable.length === 0)) { %>
+
+    processed = processed.replace(REGEX.ENDEMPTY, '<% } %>');
+    // @endempty -> <% } %>
 
     processed = processed.replace(REGEX.IF, '<% if ($1) { %>');
     // @if(condition) -> <% if (condition) { %>
