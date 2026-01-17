@@ -18,7 +18,8 @@
 
 ### 3. 迴圈
 - ✅ `@foreach(items as item)...@endforeach` - 迴圈遍歷
-- ✅ 支援 JavaScript 風格：`@foreach(item of items)`
+- ✅ `@forelse(items as item)...@empty...@endforelse` - 帶空資料處理的迴圈
+- ✅ 支援 JavaScript 風格：`@foreach(item of items)` 和 `@forelse(item of items)`
 
 ### 4. 組件系統
 - ✅ `<include src="file.html">` - Include 外部文件
@@ -42,35 +43,7 @@
 
 ### 🔴 高優先級（實用性高，建議實現）
 
-#### 1. @forelse - 空資料處理
-**用途：** 處理空陣列時顯示替代內容，避免額外的 @if 判斷
-
-**Laravel Blade 語法：**
-```blade
-@forelse ($users as $user)
-  <li>{{ $user->name }}</li>
-@empty
-  <p>沒有使用者資料</p>
-@endforelse
-```
-
-**等同於：**
-```blade
-@if (count($users) > 0)
-  @foreach ($users as $user)
-    <li>{{ $user->name }}</li>
-  @endforeach
-@else
-  <p>沒有使用者資料</p>
-@endif
-```
-
-**實現難度：** ⭐⭐ (中等)
-**預期工作量：** 2-3 小時
-
----
-
-#### 2. $loop 變數 - 迴圈元資訊
+#### 1. $loop 變數 - 迴圈元資訊
 **用途：** 在迴圈中獲取當前迭代的索引、是否第一個/最後一個等資訊
 
 **Laravel Blade 語法：**
@@ -103,7 +76,7 @@
 
 ---
 
-#### 3. @stack/@push/@prepend - CSS/JS 資源管理
+#### 2. @stack/@push/@prepend - CSS/JS 資源管理
 **用途：** 管理頁面中的 CSS 和 JavaScript，避免重複載入，支援從子頁面推送資源到佈局
 
 **Laravel Blade 語法：**
@@ -200,7 +173,7 @@
 
 ---
 
-#### 4. @once - 防止重複輸出
+#### 3. @once - 防止重複輸出
 **用途：** 確保某段代碼只輸出一次，即使 partial 被多次 include
 
 **Laravel Blade 語法：**
@@ -247,7 +220,7 @@
 
 ### 🟡 中優先級（有用但不緊急）
 
-#### 6. @isset/@empty - 變數檢查
+#### 4. @isset/@empty - 變數檢查
 **用途：** 檢查變數是否定義或為空
 
 **Laravel Blade 語法：**
@@ -309,7 +282,7 @@
 
 ---
 
-#### 8. @includeIf/@includeWhen/@includeUnless - 條件 Include
+#### 6. @includeIf/@includeWhen/@includeUnless - 條件 Include
 **用途：** 條件性載入 partial，避免檔案不存在錯誤
 
 **Laravel Blade 語法：**
@@ -340,7 +313,7 @@
 
 ### 🟢 低優先級（可替代或較少使用）
 
-#### 9. @for/@while - 其他迴圈類型
+#### 7. @for/@while - 其他迴圈類型
 **用途：** 提供更多迴圈選項
 
 **Laravel Blade 語法：**
@@ -361,7 +334,7 @@
 
 ---
 
-#### 10. @continue/@break - 迴圈控制
+#### 8. @continue/@break - 迴圈控制
 **用途：** 控制迴圈執行
 
 **Laravel Blade 語法：**
@@ -381,7 +354,7 @@
 
 ---
 
-#### 11. @class() - 條件類名
+#### 9. @class() - 條件類名
 **用途：** 動態生成 CSS 類名
 
 **Laravel Blade 語法：**
@@ -401,7 +374,7 @@
 
 ---
 
-#### 12. @json() - JSON 輸出
+#### 10. @json() - JSON 輸出
 **用途：** 安全地輸出 JSON 資料到 JavaScript
 
 **Laravel Blade 語法：**
@@ -422,29 +395,28 @@
 ## 📊 實現優先級總結
 
 ### 第一階段（核心功能）- 建議優先實現
-1. **@forelse** - 空資料處理 ⭐⭐
-2. **$loop 變數** - 迴圈元資訊 ⭐⭐⭐
+1. **$loop 變數** - 迴圈元資訊 ⭐⭐⭐
 
-**預估工作量：** 6-10 小時
+**預估工作量：** 4-6 小時
 
 ---
 
 ### 第二階段（進階功能）- 提升開發體驗
-3. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
-4. **@once** - 防止重複 ⭐⭐
+2. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
+3. **@once** - 防止重複 ⭐⭐
+4. **@isset/@empty** - 變數檢查 ⭐⭐
 5. **@verbatim** - Vue/Alpine 整合 ⭐⭐
-6. **@isset/@empty** - 變數檢查 ⭐⭐
 
 **預估工作量：** 12-16 小時
 
 ---
 
 ### 第三階段（錦上添花）- 可選
-7. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-8. **@for/@while** - 其他迴圈 ⭐⭐
-9. **@continue/@break** - 迴圈控制 ⭐⭐
-10. **@class()** - 條件類名 ⭐⭐⭐
-11. **@json()** - JSON 輸出 ⭐
+6. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
+7. **@for/@while** - 其他迴圈 ⭐⭐
+8. **@continue/@break** - 迴圈控制 ⭐⭐
+9. **@class()** - 條件類名 ⭐⭐⭐
+10. **@json()** - JSON 輸出 ⭐
 
 **預估工作量：** 12-15 小時
 

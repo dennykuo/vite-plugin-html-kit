@@ -312,16 +312,36 @@ const REGEX = {
   // @foreach(...)  -> <% for (const item of items) { %>
   // @endforeach    -> <% } %>
   //
+  // @forelse 變體（帶空資料處理）：
+  // @forelse(items as item) -> <% if (items && items.length > 0) { for (...) { %>
+  // @empty                  -> <% } } else { %>
+  // @endforelse             -> <% } %>
+  //
   // 範例：
   // @foreach(products as product)
   //   <div>{{ product.name }}</div>
   // @endforeach
+  //
+  // @forelse(users as user)
+  //   <li>{{ user.name }}</li>
+  // @empty
+  //   <p>沒有使用者</p>
+  // @endforelse
 
   /** 匹配 @foreach(expression) */
   FOREACH: /@foreach\s*\((.*?)\)/gi,
 
   /** 匹配 @endforeach */
   ENDFOREACH: /@endforeach/gi,
+
+  /** 匹配 @forelse(expression) */
+  FORELSE: /@forelse\s*\((.*?)\)/gi,
+
+  /** 匹配 @empty（用於 @forelse） */
+  EMPTY: /@empty/gi,
+
+  /** 匹配 @endforelse */
+  ENDFORELSE: /@endforelse/gi,
 
   // ====================================================================
   // 📌 Include 標籤 (Partial Includes)
@@ -851,7 +871,42 @@ export default function vitePluginHtmlKit(options = {}) {
     // 2. JavaScript 風格: @foreach(item of items) - 原生 JS
     //
     // 兩種風格都會轉換為標準的 JavaScript for...of 迴圈
+    //
+    // @forelse 變體：帶空資料處理的迴圈
+    // @forelse(items as item) -> if (items && items.length > 0) { for (...) {
+    // @empty                  -> } } else {
+    // @endforelse             -> }
 
+    // 先處理 @forelse（比 @foreach 複雜，需要優先處理）
+    processed = processed.replace(REGEX.FORELSE, (match, expression) => {
+      expression = expression.trim();
+      let collection, item;
+
+      // 解析 Blade 風格: "items as item"
+      if (expression.includes(' as ')) {
+        [collection, item] = expression.split(' as ').map(s => s.trim());
+        return `<% if (${collection} && ${collection}.length > 0) { for (let ${item} of ${collection}) { %>`;
+      }
+
+      // 解析 JavaScript 風格: "item of items"
+      if (expression.includes(' of ')) {
+        const parts = expression.split(' of ').map(s => s.trim());
+        collection = parts[1];
+        item = parts[0].replace(/^(let|const|var)\s+/, '');
+        return `<% if (${collection} && ${collection}.length > 0) { for (let ${item} of ${collection}) { %>`;
+      }
+
+      // 不符合兩種語法：使用原始表達式
+      return `<% if (true) { for (${expression}) { %>`;
+    });
+
+    processed = processed.replace(REGEX.EMPTY, '<% } } else { %>');
+    // @empty -> 關閉 for 和 if，開始 else
+
+    processed = processed.replace(REGEX.ENDFORELSE, '<% } %>');
+    // @endforelse -> 關閉 else
+
+    // 再處理 @foreach（標準迴圈，無空資料處理）
     processed = processed.replace(REGEX.FOREACH, (match, expression) => {
       expression = expression.trim();
       let collection, item;
