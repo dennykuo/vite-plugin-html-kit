@@ -6,7 +6,8 @@
 
 ### 1. 模板繼承
 - ✅ `@extends('layout')` - 繼承佈局
-- ✅ `@section('name')...@endsection` - 定義內容區塊
+- ✅ `@section('name')...@endsection` - 定義內容區塊（完整語法）
+- ✅ `@section('name', 'content')` - 簡寫語法（單行內容）
 - ✅ `@yield('name', 'default')` - 佔位符
 
 ### 2. 條件判斷

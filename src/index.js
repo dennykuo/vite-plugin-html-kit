@@ -439,8 +439,20 @@ const REGEX = {
   /**
    * 匹配 @section('name')...@endsection
    * 捕獲群組: $1=section名稱, $2=section內容
+   * 注意：使用 [^'",]+ 確保不會匹配到簡寫語法中的逗號
    */
-  SECTION: /@section\s*\(\s*['"](.+?)['"]\s*\)([\s\S]*?)@endsection/gi,
+  SECTION: /@section\s*\(\s*['"]([^'"]+)['"]\s*\)([\s\S]*?)@endsection/gi,
+
+  /**
+   * 匹配 @section('name', 'content') 簡寫語法
+   * 捕獲群組: $1=section名稱, $2=引號類型, $3=section內容
+   *
+   * 支援：
+   * - @section('class', 'bg-slate-100')
+   * - @section("title", "My Page")
+   * - 包含特殊字元如 / 和空格
+   */
+  SECTION_SHORTHAND: /@section\s*\(\s*['"](.+?)['"]\s*,\s*(['"])([\s\S]*?)\2\s*\)/gi,
 
   /**
    * 匹配 @yield('name') 或 @yield('name', 'default')
@@ -1171,12 +1183,31 @@ export default function vitePluginHtmlKit(options = {}) {
       return sections;
     }
 
+    // ========================================
+    // 步驟 1: 處理簡寫語法 @section('name', 'content')
+    // ========================================
+    // 重置正則表達式的 lastIndex
+    REGEX.SECTION_SHORTHAND.lastIndex = 0;
+
+    let match;
+
+    // 使用 exec() 迴圈查找所有簡寫 @section
+    while ((match = REGEX.SECTION_SHORTHAND.exec(html)) !== null) {
+      const name = match[1];       // 第一個捕獲群組：section 名稱
+      const content = match[3];    // 第三個捕獲群組：section 內容（第二個是引號類型）
+
+      // 儲存 section 內容，並移除前後空白
+      // 如果有重複的 section 名稱，後面的會覆蓋前面的
+      sections[name] = content.trim();
+    }
+
+    // ========================================
+    // 步驟 2: 處理完整語法 @section('name')...@endsection
+    // ========================================
     // 重置正則表達式的 lastIndex
     // 重要：當正則表達式有 /g 標誌時，exec() 會保留狀態
     // 如果不重置，可能會從上次的位置開始匹配，導致遺漏結果
     REGEX.SECTION.lastIndex = 0;
-
-    let match;
 
     // 使用 exec() 迴圈查找所有 @section 區塊
     // exec() 會逐一返回匹配結果，直到沒有更多匹配為止
