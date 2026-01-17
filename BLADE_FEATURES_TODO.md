@@ -13,6 +13,7 @@
 - ✅ `@if(condition)...@endif` - 條件判斷
 - ✅ `@elseif(condition)` - 否則如果
 - ✅ `@else` - 否則
+- ✅ `@unless(condition)...@endunless` - 否定條件（等同於 @if(!condition)）
 - ✅ `@switch/@case/@default/@endswitch` - Switch 語句
 
 ### 3. 迴圈
@@ -246,29 +247,7 @@
 
 ### 🟡 中優先級（有用但不緊急）
 
-#### 6. @unless - 否定條件簡寫
-**用途：** 簡化否定條件的寫法
-
-**Laravel Blade 語法：**
-```blade
-@unless ($user->isAdmin)
-  <p>你不是管理員</p>
-@endunless
-```
-
-**等同於：**
-```blade
-@if (!$user->isAdmin)
-  <p>你不是管理員</p>
-@endif
-```
-
-**實現難度：** ⭐ (簡單)
-**預期工作量：** 1 小時
-
----
-
-#### 7. @isset/@empty - 變數檢查
+#### 6. @isset/@empty - 變數檢查
 **用途：** 檢查變數是否定義或為空
 
 **Laravel Blade 語法：**
@@ -330,7 +309,7 @@
 
 ---
 
-#### 9. @includeIf/@includeWhen/@includeUnless - 條件 Include
+#### 8. @includeIf/@includeWhen/@includeUnless - 條件 Include
 **用途：** 條件性載入 partial，避免檔案不存在錯誤
 
 **Laravel Blade 語法：**
@@ -361,7 +340,7 @@
 
 ### 🟢 低優先級（可替代或較少使用）
 
-#### 10. @for/@while - 其他迴圈類型
+#### 9. @for/@while - 其他迴圈類型
 **用途：** 提供更多迴圈選項
 
 **Laravel Blade 語法：**
@@ -382,7 +361,7 @@
 
 ---
 
-#### 11. @continue/@break - 迴圈控制
+#### 10. @continue/@break - 迴圈控制
 **用途：** 控制迴圈執行
 
 **Laravel Blade 語法：**
@@ -402,7 +381,7 @@
 
 ---
 
-#### 12. @class() - 條件類名
+#### 11. @class() - 條件類名
 **用途：** 動態生成 CSS 類名
 
 **Laravel Blade 語法：**
@@ -422,7 +401,7 @@
 
 ---
 
-#### 13. @json() - JSON 輸出
+#### 12. @json() - JSON 輸出
 **用途：** 安全地輸出 JSON 資料到 JavaScript
 
 **Laravel Blade 語法：**
@@ -445,28 +424,27 @@
 ### 第一階段（核心功能）- 建議優先實現
 1. **@forelse** - 空資料處理 ⭐⭐
 2. **$loop 變數** - 迴圈元資訊 ⭐⭐⭐
-3. **@unless** - 否定條件 ⭐
 
-**預估工作量：** 7-11 小時
+**預估工作量：** 6-10 小時
 
 ---
 
 ### 第二階段（進階功能）- 提升開發體驗
-4. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
-5. **@once** - 防止重複 ⭐⭐
-6. **@verbatim** - Vue/Alpine 整合 ⭐⭐
-7. **@isset/@empty** - 變數檢查 ⭐⭐
+3. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
+4. **@once** - 防止重複 ⭐⭐
+5. **@verbatim** - Vue/Alpine 整合 ⭐⭐
+6. **@isset/@empty** - 變數檢查 ⭐⭐
 
 **預估工作量：** 12-16 小時
 
 ---
 
 ### 第三階段（錦上添花）- 可選
-8. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-9. **@for/@while** - 其他迴圈 ⭐⭐
-10. **@continue/@break** - 迴圈控制 ⭐⭐
-11. **@class()** - 條件類名 ⭐⭐⭐
-12. **@json()** - JSON 輸出 ⭐
+7. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
+8. **@for/@while** - 其他迴圈 ⭐⭐
+9. **@continue/@break** - 迴圈控制 ⭐⭐
+10. **@class()** - 條件類名 ⭐⭐⭐
+11. **@json()** - JSON 輸出 ⭐
 
 **預估工作量：** 12-15 小時
 

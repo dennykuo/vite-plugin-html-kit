@@ -231,6 +231,8 @@ const REGEX = {
   // @elseif(condition) -> <% } else if (condition) { %>
   // @else              -> <% } else { %>
   // @endif             -> <% } %>
+  // @unless(condition) -> <% if (!(condition)) { %>
+  // @endunless         -> <% } %>
   //
   // 範例：
   // @if(user.isAdmin)
@@ -240,6 +242,10 @@ const REGEX = {
   // @else
   //   <p>一般用戶</p>
   // @endif
+  //
+  // @unless(user.isGuest)
+  //   <p>歡迎回來</p>
+  // @endunless
 
   /** 匹配 @if(condition) */
   IF: /@if\s*\((.*?)\)/gi,
@@ -252,6 +258,12 @@ const REGEX = {
 
   /** 匹配 @endif */
   ENDIF: /@endif/gi,
+
+  /** 匹配 @unless(condition) - 否定條件 */
+  UNLESS: /@unless\s*\((.*?)\)/gi,
+
+  /** 匹配 @endunless */
+  ENDUNLESS: /@endunless/gi,
 
   // ====================================================================
   // 📌 Switch 語句 (Switch Statements)
@@ -775,12 +787,16 @@ export default function vitePluginHtmlKit(options = {}) {
     // 將 Blade 的條件判斷語法轉換為 JavaScript if/else
     //
     // 轉換順序很重要：
-    // 1. @if 必須在 @elseif 之前處理
+    // 1. @if/@unless 必須在 @elseif 之前處理
     // 2. @else 不能與 @elseif 混淆
-    // 3. @endif 必須最後處理
+    // 3. @endif/@endunless 必須最後處理
 
     processed = processed.replace(REGEX.IF, '<% if ($1) { %>');
     // @if(condition) -> <% if (condition) { %>
+
+    processed = processed.replace(REGEX.UNLESS, '<% if (!($1)) { %>');
+    // @unless(condition) -> <% if (!(condition)) { %>
+    // 注意：條件被包裹在括號中並取反，確保正確的優先級
 
     processed = processed.replace(REGEX.ELSEIF, '<% } else if ($1) { %>');
     // @elseif(condition) -> <% } else if (condition) { %>
@@ -790,6 +806,9 @@ export default function vitePluginHtmlKit(options = {}) {
 
     processed = processed.replace(REGEX.ENDIF, '<% } %>');
     // @endif -> <% } %>
+
+    processed = processed.replace(REGEX.ENDUNLESS, '<% } %>');
+    // @endunless -> <% } %>
 
     // ========================================
     // 步驟 3: 轉換 Switch 語句
