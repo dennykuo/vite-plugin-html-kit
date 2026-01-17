@@ -903,13 +903,40 @@ export default function vitePluginHtmlKit(options = {}) {
   /**
    * 處理佈局繼承（含循環引用檢測）
    *
-   * 處理 @extends 指令，載入佈局檔案並將 @section 內容填入 @yield 佔位符
-   * 支援：
-   * - 佈局繼承
-   * - Section/Yield 機制
-   * - 默認值支援
-   * - 循環引用檢測（防止 A extends B extends A）
-   * - 多層佈局的 section 傳遞
+   * 佈局繼承是模板系統的核心機制，允許子頁面繼承父佈局的結構：
+   * - 子頁面使用 @extends('layout.html') 繼承佈局
+   * - 子頁面使用 @section('name') 定義內容區塊
+   * - 父佈局使用 @yield('name') 顯示子頁面內容
+   * - 支援多層繼承（A extends B extends C）
+   *
+   * 範例：
+   *
+   * 子頁面 (index.html):
+   *   @extends('layouts/app.html')
+   *   @section('title')
+   *     首頁
+   *   @endsection
+   *   @section('content')
+   *     <h1>歡迎</h1>
+   *   @endsection
+   *
+   * 父佈局 (layouts/app.html):
+   *   <!DOCTYPE html>
+   *   <html>
+   *   <head><title>@yield('title', '預設標題')</title></head>
+   *   <body>
+   *     <main>@yield('content')</main>
+   *   </body>
+   *   </html>
+   *
+   * 最終結果:
+   *   <!DOCTYPE html>
+   *   <html>
+   *   <head><title>首頁</title></head>
+   *   <body>
+   *     <main><h1>歡迎</h1></main>
+   *   </body>
+   *   </html>
    *
    * @param {string} html - 包含 @extends 和 @section 的 HTML 字串
    * @param {string} [currentFile='root'] - 當前檔案名稱（用於循環引用檢測）
@@ -917,21 +944,37 @@ export default function vitePluginHtmlKit(options = {}) {
    * @returns {string} 處理後的 HTML（已應用佈局）
    */
   const processExtends = (() => {
-    // 🔄 使用閉包儲存佈局堆疊，用於循環引用檢測
+    // ========================================
+    // 閉包變數：佈局堆疊（循環引用檢測）
+    // ========================================
+    // 為什麼使用閉包：
+    // - 在遞迴處理多層佈局時，需要追蹤當前的佈局路徑鏈
+    // - 防止循環引用（A extends B extends A）
+    // - 閉包確保每次呼叫共用同一個 stack
     const layoutStack = [];
 
     return function process(html, currentFile = 'root', inheritedSections = {}) {
-      // 檢查是否有 @extends 指令
+
+      // ========================================
+      // 步驟 1: 檢查是否需要處理佈局繼承
+      // ========================================
+      // 如果沒有 @extends 指令，直接返回原始 HTML
       const extendsMatch = html.match(REGEX.EXTENDS);
       if (!extendsMatch) {
-        // 沒有 @extends，直接返回
         return html;
       }
 
-      // 提取佈局路徑
+      // ========================================
+      // 步驟 2: 提取佈局路徑
+      // ========================================
+      // 從 @extends('layouts/app.html') 提取 'layouts/app.html'
       const layoutPath = extendsMatch[0].replace(REGEX.EXTENDS, '$1');
 
-      // 🔒 循環引用檢測
+      // ========================================
+      // 步驟 3: 循環引用檢測
+      // ========================================
+      // 檢查當前佈局是否已在堆疊中（表示循環引用）
+      // 範例：index.html extends app.html extends base.html extends app.html (❌ 循環)
       if (layoutStack.includes(layoutPath)) {
         const cycle = [...layoutStack, layoutPath].join(' → ');
         const errorMsg = `循環佈局引用偵測: ${cycle}`;
@@ -939,78 +982,110 @@ export default function vitePluginHtmlKit(options = {}) {
         return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
       }
 
+      // 將當前佈局加入堆疊
       layoutStack.push(layoutPath);
 
       try {
-        // 移除 @extends 指令
+        // ========================================
+        // 步驟 4: 解析當前頁面的 Section 內容
+        // ========================================
+        // 移除 @extends 指令（已經提取了路徑）
         html = html.replace(REGEX.EXTENDS, '');
 
         // 解析所有 @section 區塊
+        // 範例：@section('title') 首頁 @endsection
+        //       sections = { title: '首頁' }
         const sections = parseSections(html);
 
-        // 移除所有 @section 定義（已經提取到 sections 物件）
+        // 移除所有 @section 定義（內容已提取到 sections 物件）
         html = html.replace(REGEX.SECTION, '');
 
-        // 讀取佈局檔案
+        // ========================================
+        // 步驟 5: 讀取佈局檔案（含安全性檢查）
+        // ========================================
         const rootPath = viteConfig?.root || process.cwd();
         const absolutePartialsDir = path.resolve(rootPath, partialsDir);
         const layoutFilePath = path.resolve(absolutePartialsDir, layoutPath);
 
         // 🔒 安全性檢查：路徑遍歷攻擊防護
+        // 防止惡意路徑如 '../../../etc/passwd'
         // 確保解析後的檔案路徑必須在 partialsDir 目錄內
         if (!layoutFilePath.startsWith(absolutePartialsDir)) {
           console.error(`\x1b[31m[vite-plugin-html-kit] 路徑遍歷攻擊偵測: ${layoutPath}\x1b[0m`);
           return `<!-- [vite-plugin-html-kit] 錯誤: 不允許的佈局路徑 -->`;
         }
 
+        // 檢查檔案是否存在
         if (!fs.existsSync(layoutFilePath)) {
           console.warn(`\x1b[33m[vite-plugin-html-kit] 找不到佈局檔案: ${layoutPath}\x1b[0m`);
           return `<!-- [vite-plugin-html-kit] 錯誤: 找不到佈局檔案 ${layoutPath} -->`;
         }
 
+        // 讀取佈局檔案內容
         let layoutContent = fs.readFileSync(layoutFilePath, 'utf-8');
 
-        // 遞迴處理佈局的 @extends（支援多層佈局）
+        // ========================================
+        // 步驟 6: 處理多層佈局繼承
+        // ========================================
+        // 佈局檔案本身也可能 extends 其他佈局
+        // 範例：index.html extends app.html extends base.html
+
         // 先提取佈局中的 sections（如果有）
         const layoutSections = parseSections(layoutContent);
 
-        // 合併所有可用的 sections：當前頁面 sections + 繼承的 sections
-        // 優先使用當前頁面的 sections（覆蓋繼承的同名 sections）
+        // 合併所有可用的 sections：
+        // - inheritedSections: 從更深層子頁面傳遞來的
+        // - sections: 當前頁面定義的
+        // 優先順序：當前頁面 > 繼承的（覆蓋同名 section）
         const allSections = { ...inheritedSections, ...sections };
 
-        // 處理佈局的 extends，並傳遞合併後的 sections
+        // 遞迴處理佈局的 @extends，並傳遞合併後的 sections
         layoutContent = process(layoutContent, layoutPath, allSections);
 
-        // 替換 @yield 佔位符
-        // 優先順序：當前頁面 sections > 繼承的 sections > 佈局自己的 sections > 默認值
+        // ========================================
+        // 步驟 7: 替換 @yield 佔位符
+        // ========================================
+        // @yield 的優先順序（由高到低）：
+        // 1. 當前頁面的 section
+        // 2. 繼承的 section（從子頁面傳遞）
+        // 3. 佈局自己定義的 section
+        // 4. @yield 的默認值
+        // 5. 空字串
         layoutContent = layoutContent.replace(REGEX.YIELD, (match, name, defaultValue) => {
-          // 如果當前頁面有對應的 section，使用當前頁面的 section 內容
+          // 優先使用當前頁面的 section
           if (sections[name] !== undefined) {
             return sections[name];
           }
-          // 否則如果繼承的 sections 有，使用繼承的 section 內容
+          // 其次使用繼承的 section
           if (inheritedSections[name] !== undefined) {
             return inheritedSections[name];
           }
-          // 否則如果佈局有對應的 section，使用佈局的 section 內容
+          // 再次使用佈局自己的 section
           if (layoutSections[name] !== undefined) {
             return layoutSections[name];
           }
-          // 都沒有，使用默認值（如果有提供）
+          // 最後使用默認值或空字串
           if (defaultValue !== undefined) {
             return defaultValue;
           }
-          // 都沒有，返回空字串
           return '';
         });
 
         return layoutContent;
 
       } catch (error) {
+        // ========================================
+        // 錯誤處理
+        // ========================================
         console.error(`\x1b[31m[vite-plugin-html-kit] 處理佈局時發生錯誤: ${error.message}\x1b[0m`);
         return `<!-- [vite-plugin-html-kit] 錯誤: ${error.message} -->`;
+
       } finally {
-        // 無論成功或失敗，都要從堆疊中移除
+        // ========================================
+        // 清理：移除佈局堆疊
+        // ========================================
+        // 無論成功或失敗，都要從堆疊中移除當前佈局
+        // 這樣才能正確處理下一個佈局
         layoutStack.pop();
       }
     };
@@ -1019,71 +1094,96 @@ export default function vitePluginHtmlKit(options = {}) {
   /**
    * 遞迴解析 HTML Include 標籤（含循環引用檢測）
    *
-   * 處理 <include src="..." /> 標籤，載入外部 HTML partial 檔案
-   * 支援：
-   * - 遞迴 include（partial 內可以再 include 其他 partial）
-   * - 資料傳遞（透過 HTML 屬性傳遞變數給 partial）
-   * - 完整的 Lodash Template 編譯
-   * - 路徑遍歷攻擊防護
-   * - 循環引用檢測（防止無限遞迴）
+   * Include 機制允許重用 HTML 片段（partial），類似組件系統：
+   * - 使用 <include src="..." /> 載入外部 HTML 檔案
+   * - 透過 HTML 屬性傳遞資料給 partial
+   * - 支援 Slot 機制（類似 Vue/React 的 children）
+   * - 支援遞迴 include（partial 內可再 include 其他 partial）
+   *
+   * 兩種使用方式：
+   *
+   * 1. 自閉合標籤（無 slot）:
+   *    <include src="header.html" title="首頁" active="true" />
+   *
+   * 2. 包含內容標籤（有 slot）:
+   *    <include src="card.html" title="標題">
+   *      @slot('content')
+   *        <p>卡片內容</p>
+   *      @endslot
+   *      @slot('footer')
+   *        <button>確定</button>
+   *      @endslot
+   *    </include>
+   *
+   * Partial 檔案範例 (card.html):
+   *    <div class="card">
+   *      <h3>{{ title }}</h3>
+   *      <div class="body">@slot('content', '預設內容')</div>
+   *      <div class="footer">@slot('footer')</div>
+   *    </div>
    *
    * @param {string} html - 包含 include 標籤的 HTML 字串
    * @param {Object} dataContext - 當前可用的資料上下文
    * @param {string} [currentFile='root'] - 當前正在處理的檔案名稱（用於循環引用檢測）
    * @returns {string} 處理後的 HTML（include 標籤已被實際內容取代）
-   *
-   * @example
-   * // 使用方式:
-   * // <include src="header.html" title="Home" active="true" />
-   *
-   * // header.html 內可以使用:
-   * // <h1>{{ title }}</h1>
-   * // @if (active === 'true')
-   * //   <span>Active</span>
-   * // @endif
    */
   const resolveIncludes = (() => {
-    // 🔄 使用閉包儲存 include 堆疊，用於循環引用檢測
-    // 每個元素是正在處理的檔案路徑
+    // ========================================
+    // 閉包變數：Include 堆疊（循環引用檢測）
+    // ========================================
+    // 防止無限遞迴：A includes B includes C includes A (❌ 循環)
     const includeStack = [];
 
-    /**
-     * 內部遞迴函式，帶循環引用檢測
-     */
     return function resolve(html, dataContext, currentFile = 'root') {
-      // 🔍 循環引用檢測：檢查當前檔案是否已在處理堆疊中
+
+      // ========================================
+      // 步驟 1: 循環引用檢測
+      // ========================================
+      // 檢查當前檔案是否已在處理堆疊中
       if (includeStack.includes(currentFile)) {
-        // 發現循環引用！建立循環路徑字串用於錯誤訊息
         const cycle = [...includeStack, currentFile].join(' → ');
         const errorMsg = `循環引用偵測: ${cycle}`;
         console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
         return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
       }
 
-      // 將當前檔案加入處理堆疊
+      // 將當前檔案加入堆疊
       includeStack.push(currentFile);
 
       try {
-        // 先轉換當前層的 Blade 邏輯標籤
+        // ========================================
+        // 步驟 2: 預處理 - 轉換 Blade 邏輯標籤
+        // ========================================
+        // 先轉換當前層的 @if、@foreach 等標籤為 Lodash Template 語法
+        // 這樣在 include 的 partial 內也能使用 Blade 語法
         let processedHtml = transformLogicTags(html);
 
+        // ========================================
+        // 步驟 3: 替換所有 <include> 標籤
+        // ========================================
         return processedHtml.replace(REGEX.INCLUDE, (match, src, attributesStr, includeContent, src2, attributesStr2) => {
-          // 處理兩種形式的 include 標籤
-          // 形式1: <include src="..." ...>content</include>（包含 slot）
-          // 形式2: <include src="..." ... />（自閉合，無 slot）
+
+          // ----------------------------------------
+          // 步驟 3.1: 識別 Include 標籤類型
+          // ----------------------------------------
+          // 兩種形式：
+          // - 形式1: <include src="..." ...>content</include>（包含 slot）
+          // - 形式2: <include src="..." ... />（自閉合，無 slot）
           if (!src) {
-            // 如果第一組沒匹配到，使用第二組（自閉合形式）
             src = src2;
             attributesStr = attributesStr2;
             includeContent = '';
           }
+
+          // ----------------------------------------
+          // 步驟 3.2: 解析檔案路徑（含安全檢查）
+          // ----------------------------------------
           const rootPath = viteConfig?.root || process.cwd();
           const absolutePartialsDir = path.resolve(rootPath, partialsDir);
           const filePath = path.resolve(absolutePartialsDir, src);
 
-          // 🔒 安全性檢查：防止路徑遍歷攻擊
-          // 確保解析後的檔案路徑必須在 partialsDir 目錄內
-          // 這可以防止攻擊者使用 "../../../etc/passwd" 讀取系統檔案
+          // 🔒 安全性檢查：路徑遍歷攻擊防護
+          // 防止惡意路徑如 '../../../etc/passwd'
           if (!filePath.startsWith(absolutePartialsDir)) {
             const errorMsg = `路徑遍歷攻擊偵測: ${src}`;
             console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
@@ -1098,67 +1198,94 @@ export default function vitePluginHtmlKit(options = {}) {
           }
 
           try {
-            // 讀取 partial 檔案內容
+            // ----------------------------------------
+            // 步驟 3.3: 讀取 Partial 檔案
+            // ----------------------------------------
             let content = fs.readFileSync(filePath, 'utf-8');
 
-            // 🎰 解析 Slot 內容（如果有）
-            // 從 <include>...</include> 標籤內容中提取 @slot('name')...@endslot 區塊
+            // ----------------------------------------
+            // 步驟 3.4: 解析 Slot 內容
+            // ----------------------------------------
+            // 從 <include>...</include> 內容中提取所有 @slot 區塊
+            // 範例：
+            //   @slot('header')
+            //     <h1>標題</h1>
+            //   @endslot
+            // 解析為: slots = { header: '<h1>標題</h1>' }
             const slots = {};
             if (includeContent && includeContent.trim()) {
-              let slotMatch;
-              // 重置 regex 的 lastIndex
+              // 重置正則表達式的 lastIndex（重要！）
               REGEX.SLOT_BLOCK.lastIndex = 0;
 
+              let slotMatch;
               while ((slotMatch = REGEX.SLOT_BLOCK.exec(includeContent)) !== null) {
-                const slotName = slotMatch[1];      // slot 名稱
-                const slotContent = slotMatch[2];   // slot 內容
+                const slotName = slotMatch[1];
+                const slotContent = slotMatch[2];
                 slots[slotName] = slotContent.trim();
               }
             }
 
-            // 🎰 替換組件中的 @slot 佔位符
-            // 在處理 include 之前，先替換 slot 佔位符
+            // ----------------------------------------
+            // 步驟 3.5: 替換 Partial 中的 @slot 佔位符
+            // ----------------------------------------
+            // 在 partial 檔案中，@slot('name', 'default') 會被替換為：
+            // 1. 傳入的 slot 內容（優先）
+            // 2. 默認值（如果有提供）
+            // 3. 空字串
             content = content.replace(REGEX.SLOT, (slotMatch, slotName, defaultValue) => {
-              // 如果有對應的 slot 內容，使用 slot 內容
               if (slots[slotName] !== undefined) {
                 return slots[slotName];
               }
-              // 否則使用默認值（如果有提供）
               if (defaultValue !== undefined) {
                 return defaultValue;
               }
-              // 都沒有，返回空字串
               return '';
             });
 
-            // 解析傳遞給 partial 的局部變數 (Locals)
-            // 例如: <include src="..." title="Home" show="true" />
-            // 會被解析為: { title: "Home", show: "true" }
+            // ----------------------------------------
+            // 步驟 3.6: 解析傳遞的屬性（Locals）
+            // ----------------------------------------
+            // 從 <include src="..." title="首頁" count="5" />
+            // 解析為: { title: "首頁", count: "5" }
             const rawLocals = parseAttributes(attributesStr);
 
             // 移除不應該存在的 locals 屬性（舊版語法遺留）
-            // 新版本只支援透過 HTML 屬性傳遞資料，不再支援 locals='{"key": "val"}' 格式
             if (rawLocals.locals) {
               delete rawLocals.locals;
             }
 
-            // 評估屬性值中的 {{ }} 表達式
-            // 例如: tags="{{ post.tags }}" 會被評估為實際的陣列值
+            // ----------------------------------------
+            // 步驟 3.7: 評估屬性表達式
+            // ----------------------------------------
+            // 將屬性值中的 {{ }} 表達式求值
+            // 範例: count="{{ items.length }}" 會被評估為實際數字
             const locals = evaluateAttributeExpressions(rawLocals, dataContext, defaultCompilerOptions);
 
-            // 合併資料上下文: 全域資料 + 局部變數
-            // _: lodash - 讓模板內可以使用 Lodash 函式庫（例如: {{ _.capitalize(name) }}）
+            // ----------------------------------------
+            // 步驟 3.8: 合併資料上下文
+            // ----------------------------------------
+            // 合併順序（後者覆蓋前者）：
+            // 1. Lodash 工具函式（_）
+            // 2. 全域資料上下文
+            // 3. 局部變數（傳入的屬性）
             const currentData = { _: lodash, ...dataContext, ...locals };
 
-            // 🔄 遞迴處理 partial 內的 include 標籤，傳入當前檔案名稱用於循環檢測
+            // ----------------------------------------
+            // 步驟 3.9: 遞迴處理 Partial 內的 Include
+            // ----------------------------------------
+            // Partial 內可能還有其他 <include> 標籤，需要遞迴處理
+            // 傳入檔案名稱用於循環引用檢測
             const resolvedContent = resolve(content, currentData, src);
 
-            // 編譯並執行 Lodash Template
+            // ----------------------------------------
+            // 步驟 3.10: 編譯並執行 Lodash Template
+            // ----------------------------------------
             try {
               const compiled = lodash.template(resolvedContent, defaultCompilerOptions);
               return compiled(currentData);
+
             } catch (e) {
-              // 如果編譯失敗，根據環境變數決定是否顯示除錯資訊
+              // 編譯失敗時的除錯資訊
               if (process.env.DEBUG || process.env.VITE_DEBUG) {
                 console.log('\n--- [vite-plugin-html-kit] 編譯 Partial 時發生錯誤 ---');
                 console.log(`檔案: ${src}`);
@@ -1170,6 +1297,9 @@ export default function vitePluginHtmlKit(options = {}) {
             }
 
           } catch (error) {
+            // ----------------------------------------
+            // 錯誤處理
+            // ----------------------------------------
             const errorMsg = `處理檔案 ${src} 時發生錯誤: ${error.message}`;
             console.error(`\x1b[31m[vite-plugin-html-kit] ${errorMsg}\x1b[0m`);
             return `<!-- [vite-plugin-html-kit] 錯誤: ${errorMsg} -->`;
@@ -1177,7 +1307,10 @@ export default function vitePluginHtmlKit(options = {}) {
         });
 
       } finally {
-        // ✅ 處理完成後，必須從堆疊移除當前檔案
+        // ========================================
+        // 清理：移除 Include 堆疊
+        // ========================================
+        // 無論成功或失敗，都要從堆疊中移除當前檔案
         // 使用 finally 確保即使發生錯誤也會正確清理
         includeStack.pop();
       }
