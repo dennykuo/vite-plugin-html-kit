@@ -23,12 +23,12 @@
           單行內容的 section 可以使用簡寫語法，不需要 @endsection
         </p>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <pre class="text-xs font-mono text-gray-700"><code>@section('title', '頁面標題')
-@section('class', 'bg-slate-100/30')
+          <pre class="text-xs font-mono text-gray-700"><code>@@section('title', '頁面標題')
+@@section('class', 'bg-slate-100/30')
 
-@section('content')
+@@section('content')
   &lt;div&gt;完整語法用於多行內容&lt;/div&gt;
-@endsection</code></pre>
+@@endsection</code></pre>
         </div>
       </div>
     </section>
@@ -234,12 +234,12 @@
           <p class="text-xs font-medium text-gray-500 mb-2">
             使用範例（在 partial 中定義只需載入一次的資源）：
           </p>
-          <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded"><code>@once
+          <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded"><code>@@once
   &lt;script src="/js/chart.js"&gt;&lt;/script&gt;
   &lt;link href="/css/chart.css" rel="stylesheet"&gt;
-@endonce</code></pre>
+@@endonce</code></pre>
           <p class="text-xs text-gray-600 mt-2">
-            即使 partial 被 include 多次，@once 區塊內的內容只會輸出一次
+            即使 partial 被 include 多次，@@once 區塊內的內容只會輸出一次
           </p>
         </div>
       </div>
@@ -289,7 +289,7 @@
             <p class="text-xs font-medium text-gray-500 mb-2">基本用法：</p>
             <div class="bg-teal-50 rounded-lg p-3 border border-teal-100">
               <pre class="text-xs font-mono text-gray-700"><code>&lt;script&gt;
-  const user = @json({ name: 'John', age: 30 });
+  const user = @@json({ name: 'John', age: 30 });
   console.log(user); // { name: "John", age: 30 }
 &lt;/script&gt;</code></pre>
             </div>
@@ -297,7 +297,7 @@
           <div>
             <p class="text-xs font-medium text-gray-500 mb-2">格式化輸出（pretty print）：</p>
             <div class="bg-teal-50 rounded-lg p-3 border border-teal-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@json({ debug: true, port: 3000 }, true)</code></pre>
+              <pre class="text-xs font-mono text-gray-700"><code>@@json({ debug: true, port: 3000 }, true)</code></pre>
               <p class="text-xs text-gray-600 mt-2">輸出：</p>
               <pre class="text-xs font-mono text-gray-700 bg-white p-2 rounded mt-1"><code>{
   "debug": true,
@@ -333,9 +333,9 @@
                 變數已定義：Alice
               </div>
               @endisset
-              <pre class="text-xs font-mono text-gray-600 mt-2 bg-white p-2 rounded"><code>@isset(user.name)
+              <pre class="text-xs font-mono text-gray-600 mt-2 bg-white p-2 rounded"><code>@@isset(user.name)
   &lt;p&gt;{{ user.name }}&lt;/p&gt;
-@endisset</code></pre>
+@@endisset</code></pre>
             </div>
           </div>
           <div>
@@ -349,9 +349,9 @@
                 陣列是空的
               </div>
               @endempty
-              <pre class="text-xs font-mono text-gray-600 mt-2 bg-white p-2 rounded"><code>@empty(items)
+              <pre class="text-xs font-mono text-gray-600 mt-2 bg-white p-2 rounded"><code>@@empty(items)
   &lt;p&gt;沒有項目&lt;/p&gt;
-@endempty</code></pre>
+@@endempty</code></pre>
             </div>
           </div>
         </div>
@@ -372,13 +372,13 @@
         </p>
         <div class="bg-pink-50 rounded-lg p-4 border border-pink-100">
           <p class="text-xs font-medium text-gray-500 mb-2">範例：Vue.js 模板</p>
-          <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded"><code>@verbatim
+          <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded"><code>@@verbatim
   &lt;div id="app"&gt;
     &lt;h1&gt;{{ message }}&lt;/h1&gt;
     &lt;input v-model="name"&gt;
     &lt;p&gt;Hello {{ name }}&lt;/p&gt;
   &lt;/div&gt;
-@endverbatim
+@@endverbatim
 
 &lt;script&gt;
   new Vue({
@@ -387,7 +387,7 @@
   });
 &lt;/script&gt;</code></pre>
           <p class="text-xs text-gray-600 mt-2">
-            @verbatim 區塊內的 {{ }} 和 Blade 指令不會被處理，完整保留給 Vue.js
+            @@verbatim 區塊內的 {{ }} 和 Blade 指令不會被處理，完整保留給 Vue.js
           </p>
         </div>
       </div>
@@ -411,33 +411,33 @@
             <div class="bg-orange-50 rounded-lg p-3 border border-orange-100">
               <pre class="text-xs font-mono text-gray-700"><code>&lt;head&gt;
   &lt;link href="/css/app.css" rel="stylesheet"&gt;
-  @stack('styles')
+  @@stack('styles')
 &lt;/head&gt;
 &lt;body&gt;
-  @yield('content')
+  @@yield('content')
   &lt;script src="/js/app.js"&gt;&lt;/script&gt;
-  @stack('scripts')
+  @@stack('scripts')
 &lt;/body&gt;</code></pre>
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">子頁面中使用 @push：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">子頁面中使用 @@push：</p>
             <div class="bg-orange-50 rounded-lg p-3 border border-orange-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@push('styles')
+              <pre class="text-xs font-mono text-gray-700"><code>@@push('styles')
   &lt;link href="/css/dashboard.css" rel="stylesheet"&gt;
-@endpush
+@@endpush
 
-@push('scripts')
+@@push('scripts')
   &lt;script src="/js/charts.js"&gt;&lt;/script&gt;
-@endpush</code></pre>
+@@endpush</code></pre>
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">使用 @prepend 插入到最前面（例如 critical CSS）：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">使用 @@prepend 插入到最前面（例如 critical CSS）：</p>
             <div class="bg-orange-50 rounded-lg p-3 border border-orange-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@prepend('styles')
+              <pre class="text-xs font-mono text-gray-700"><code>@@prepend('styles')
   &lt;link href="/css/critical.css" rel="stylesheet"&gt;
-@endprepend</code></pre>
+@@endprepend</code></pre>
               <p class="text-xs text-gray-600 mt-2">
                 結果順序：critical.css → dashboard.css → app.css
               </p>
@@ -461,9 +461,9 @@
         </p>
         <div class="space-y-4">
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">@includeIf - 只在檔案存在時 include：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">@@includeIf - 只在檔案存在時 include：</p>
             <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@includeIf('custom-header.html')
+              <pre class="text-xs font-mono text-gray-700"><code>@@includeIf('custom-header.html')
 {{-- 如果檔案不存在，靜默失敗（不報錯） --}}</code></pre>
               <p class="text-xs text-gray-600 mt-2">
                 適用於可選的自訂 partial，不會因檔案缺失而中斷
@@ -471,30 +471,30 @@
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">@includeWhen - 條件為 true 時 include：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">@@includeWhen - 條件為 true 時 include：</p>
             <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@includeWhen(user.isAdmin, 'admin-menu.html')
-@includeWhen(showDebug, 'debug-panel.html', { mode: 'development' })</code></pre>
+              <pre class="text-xs font-mono text-gray-700"><code>@@includeWhen(user.isAdmin, 'admin-menu.html')
+@@includeWhen(showDebug, 'debug-panel.html', { mode: 'development' })</code></pre>
               <p class="text-xs text-gray-600 mt-2">
                 只在指定條件為 true 時載入 partial
               </p>
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">@includeUnless - 條件為 false 時 include：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">@@includeUnless - 條件為 false 時 include：</p>
             <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@includeUnless(user.isGuest, 'user-menu.html')
-@includeUnless(isProduction, 'dev-tools.html')</code></pre>
+              <pre class="text-xs font-mono text-gray-700"><code>@@includeUnless(user.isGuest, 'user-menu.html')
+@@includeUnless(isProduction, 'dev-tools.html')</code></pre>
               <p class="text-xs text-gray-600 mt-2">
-                等同於 @includeWhen(!condition, ...)，語義更清晰
+                等同於 @@includeWhen(!condition, ...)，語義更清晰
               </p>
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">@includeFirst - include 第一個存在的檔案：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">@@includeFirst - include 第一個存在的檔案：</p>
             <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
-              <pre class="text-xs font-mono text-gray-700"><code>@includeFirst(['custom-footer.html', 'default-footer.html'])
-@includeFirst(['theme/header.html', 'partials/header.html'], { title: 'Home' })</code></pre>
+              <pre class="text-xs font-mono text-gray-700"><code>@@includeFirst(['custom-footer.html', 'default-footer.html'])
+@@includeFirst(['theme/header.html', 'partials/header.html'], { title: 'Home' })</code></pre>
               <p class="text-xs text-gray-600 mt-2">
                 按順序檢查多個檔案，使用第一個找到的。適合主題系統或 fallback 機制
               </p>
