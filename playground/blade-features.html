@@ -10,17 +10,17 @@
       <p class="text-gray-500 mt-2 text-sm">展示最新實現的 Laravel Blade 風格功能</p>
     </header>
 
-    <!-- 1. @section 簡寫語法 -->
+    <!-- 1. &#64;section 簡寫語法 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">1</span>
-          @section 簡寫語法
+          &#64;section 簡寫語法
         </h2>
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          單行內容的 section 可以使用簡寫語法，不需要 @endsection
+          單行內容的 section 可以使用簡寫語法，不需要 &#64;endsection
         </p>
         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <pre class="text-xs font-mono text-gray-700"><code>&#64;section('title', '頁面標題')
@@ -33,22 +33,22 @@
       </div>
     </section>
 
-    <!-- 2. @include Blade 風格 -->
+    <!-- 2. &#64;include Blade 風格 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">2</span>
-          @include Blade 風格
+          &#64;include Blade 風格
         </h2>
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          可以使用 Laravel Blade 風格的 @include，與 &lt;include&gt; 標籤共存
+          可以使用 Laravel Blade 風格的 &#64;include，與 &lt;include&gt; 標籤共存
         </p>
 
         <div class="space-y-3">
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">使用 @include 語法：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">使用 &#64;include 語法：</p>
             <div class="bg-indigo-50 p-3 rounded border border-indigo-100">
               @include('content.html', { content: '透過 @include 傳遞的內容！' })
             </div>
@@ -64,21 +64,21 @@
       </div>
     </section>
 
-    <!-- 3. @unless 否定條件 -->
+    <!-- 3. &#64;unless 否定條件 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">3</span>
-          @unless 否定條件
+          &#64;unless 否定條件
         </h2>
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          @unless 等同於 @if(!condition)，語義更清晰
+          &#64;unless 等同於 &#64;if(!condition)，語義更清晰
         </p>
         <div class="grid md:grid-cols-2 gap-4">
           <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
-            <p class="text-xs text-gray-500 mb-2">@unless (false)</p>
+            <p class="text-xs text-gray-500 mb-2">&#64;unless (false)</p>
             @unless (false)
             <div class="flex items-center gap-2 text-green-700 font-medium">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +90,7 @@
           </div>
 
           <div class="p-4 rounded-lg border border-gray-100 bg-gray-50">
-            <p class="text-xs text-gray-500 mb-2">@unless (true)</p>
+            <p class="text-xs text-gray-500 mb-2">&#64;unless (true)</p>
             @unless (true)
             <span class="text-red-500">不應該顯示</span>
             @else
@@ -116,7 +116,7 @@
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          @foreach 中自動提供 loop 變數，包含迴圈元資訊
+          &#64;foreach 中自動提供 loop 變數，包含迴圈元資訊
         </p>
         <div class="space-y-4">
           <div>
@@ -161,17 +161,17 @@
       </div>
     </section>
 
-    <!-- 5. @forelse 空資料處理 -->
+    <!-- 5. &#64;forelse 空資料處理 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">5</span>
-          @forelse 空資料處理
+          &#64;forelse 空資料處理
         </h2>
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          @forelse 結合迴圈和空資料處理，避免額外的 @if 檢查
+          &#64;forelse 結合迴圈和空資料處理，避免額外的 &#64;if 檢查
         </p>
         <div class="grid md:grid-cols-2 gap-4">
           <div>
@@ -218,17 +218,17 @@
       </div>
     </section>
 
-    <!-- 6. @once 防止重複 -->
+    <!-- 6. &#64;once 防止重複 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-600 text-xs font-bold">6</span>
-          @once 防止重複輸出
+          &#64;once 防止重複輸出
         </h2>
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          @once 確保代碼塊只輸出一次，即使 partial 被多次引入
+          &#64;once 確保代碼塊只輸出一次，即使 partial 被多次引入
         </p>
         <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
           <p class="text-xs font-medium text-gray-500 mb-2">
@@ -272,12 +272,12 @@
       </div>
     </section>
 
-    <!-- 8. @json JSON 輸出 -->
+    <!-- 8. &#64;json JSON 輸出 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-600 text-xs font-bold">8</span>
-          @json JSON 輸出
+          &#64;json JSON 輸出
         </h2>
       </div>
       <div class="p-6">
@@ -309,12 +309,12 @@
       </div>
     </section>
 
-    <!-- 9. @isset/@empty 變數檢查 -->
+    <!-- 9. &#64;isset/&#64;empty 變數檢查 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100 text-purple-600 text-xs font-bold">9</span>
-          @isset/@empty 變數檢查
+          &#64;isset/&#64;empty 變數檢查
         </h2>
       </div>
       <div class="p-6">
@@ -323,7 +323,7 @@
         </p>
         <div class="grid md:grid-cols-2 gap-4">
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">@isset - 檢查變數存在：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">&#64;isset - 檢查變數存在：</p>
             <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
               @isset ({ name: 'Alice' }.name)
               <div class="flex items-center gap-2 text-green-700 text-sm">
@@ -339,7 +339,7 @@
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">@empty - 檢查變數為空：</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">&#64;empty - 檢查變數為空：</p>
             <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
               @empty ([])
               <div class="flex items-center gap-2 text-orange-700 text-sm">
@@ -358,17 +358,17 @@
       </div>
     </section>
 
-    <!-- 10. @verbatim 跳過 Blade 解析 -->
+    <!-- 10. &#64;verbatim 跳過 Blade 解析 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-pink-100 text-pink-600 text-xs font-bold">10</span>
-          @verbatim Vue/Alpine 整合
+          &#64;verbatim Vue/Alpine 整合
         </h2>
       </div>
       <div class="p-6">
         <p class="text-sm text-gray-600 mb-4">
-          使用 @verbatim 保護前端框架語法，避免被 Blade 處理
+          使用 &#64;verbatim 保護前端框架語法，避免被 Blade 處理
         </p>
         <div class="bg-pink-50 rounded-lg p-4 border border-pink-100">
           <p class="text-xs font-medium text-gray-500 mb-2">範例：Vue.js 模板</p>
@@ -393,12 +393,12 @@
       </div>
     </section>
 
-    <!-- 11. @stack/@push/@prepend 資源管理 -->
+    <!-- 11. &#64;stack/&#64;push/&#64;prepend 資源管理 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-orange-600 text-xs font-bold">11</span>
-          @stack/@push/@prepend 資源管理
+          &#64;stack/&#64;push/&#64;prepend 資源管理
         </h2>
       </div>
       <div class="p-6">
