@@ -222,6 +222,37 @@ const REGEX = {
   BLADE_COMMENT: /\{\{--[\s\S]*?--\}\}/g,
 
   // ====================================================================
+  // 📌 Verbatim 區塊 (Verbatim Blocks)
+  // ====================================================================
+  // 保護區塊內容不被 Blade 處理
+  //
+  // 用途：
+  // - 與 Vue.js、Alpine.js、Angular 等前端框架整合
+  // - 保留 {{ }} 語法給前端框架使用
+  // - 防止 Blade 處理框架的模板語法
+  //
+  // 語法：
+  // @verbatim
+  //   <div>{{ vueVariable }}</div>
+  // @endverbatim
+  //
+  // 範例：
+  // @verbatim
+  //   <div id="app">
+  //     <h1>{{ message }}</h1>
+  //     <p>{{ user.name }}</p>
+  //   </div>
+  // @endverbatim
+  //
+  // 正則說明：
+  // - @verbatim : 匹配開始標記
+  // - ([\s\S]*?) : 非貪婪匹配任意內容（包括換行）
+  // - @endverbatim : 匹配結束標記
+
+  /** 匹配 @verbatim...@endverbatim 區塊 */
+  VERBATIM: /@verbatim([\s\S]*?)@endverbatim/gi,
+
+  // ====================================================================
   // 📌 JSON 輸出 (JSON Output)
   // ====================================================================
   // 將 JavaScript 物件或變數轉換為 JSON 字串輸出
@@ -531,6 +562,43 @@ const REGEX = {
    * 捕獲群組: $1=yield名稱, $2=預設值(可選)
    */
   YIELD: /@yield\s*\(\s*['"](.+?)['"]\s*(?:,\s*['"](.+?)['"]\s*)?\)/gi,
+
+  // ====================================================================
+  // 📌 堆疊系統 (Stack System)
+  // ====================================================================
+  // 用於管理 CSS 和 JavaScript 資源
+  //
+  // 三個核心指令：
+  // 1. @stack('name') - 在佈局中定義堆疊位置
+  // 2. @push('name')...@endpush - 從子頁面推送內容（添加到末尾）
+  // 3. @prepend('name')...@endprepend - 從子頁面推送內容（添加到開頭）
+  //
+  // 範例：
+  // <!-- 佈局文件 -->
+  // <head>
+  //   @stack('styles')
+  // </head>
+  // <body>
+  //   @stack('scripts')
+  // </body>
+  //
+  // <!-- 子頁面 -->
+  // @push('styles')
+  //   <link href="/css/custom.css" rel="stylesheet">
+  // @endpush
+  //
+  // @prepend('scripts')
+  //   <script src="/js/critical.js"></script>
+  // @endprepend
+
+  /** 匹配 @stack('name') */
+  STACK: /@stack\s*\(\s*['"](.+?)['"]\s*\)/gi,
+
+  /** 匹配 @push('name')...@endpush */
+  PUSH: /@push\s*\(\s*['"](.+?)['"]\s*\)([\s\S]*?)@endpush/gi,
+
+  /** 匹配 @prepend('name')...@endprepend */
+  PREPEND: /@prepend\s*\(\s*['"](.+?)['"]\s*\)([\s\S]*?)@endprepend/gi,
 
   // ====================================================================
   // 📌 組件槽位系統 (Component Slots)
@@ -910,6 +978,10 @@ export default function vitePluginHtmlKit(options = {}) {
     performanceStats.recordMiss();
 
     let processed = html;
+
+    // 注意：@verbatim 區塊已在 transformIndexHtml 中預先處理
+    // 這裡會看到 HTML 註釋佔位符：<!-- __VPHK_VERBATIM_N__ -->
+    // 這些佔位符不會被任何 Blade 語法處理
 
     // ========================================
     // 步驟 1.5: 移除 Blade 註釋
@@ -1372,6 +1444,97 @@ export default function vitePluginHtmlKit(options = {}) {
     }
 
     return sections;
+  };
+
+  /**
+   * 解析 HTML 中的 @push 和 @prepend 區塊
+   *
+   * 從子頁面中提取所有 @push 和 @prepend 定義，
+   * 用於堆疊系統（CSS/JS 資源管理）。
+   *
+   * @param {string} html - 包含 @push/@prepend 標籤的 HTML
+   * @returns {Object} stacks - 鍵為 stack 名稱，值為內容陣列
+   *
+   * @example
+   * const stacks = parseStacks(`
+   *   @push('styles')
+   *     <link href="/css/custom.css" rel="stylesheet">
+   *   @endpush
+   *
+   *   @push('styles')
+   *     <style>body { margin: 0; }</style>
+   *   @endpush
+   *
+   *   @prepend('scripts')
+   *     <script src="/js/critical.js"></script>
+   *   @endprepend
+   * `);
+   *
+   * // 返回:
+   * // {
+   * //   styles: [
+   * //     { type: 'push', content: '<link href="/css/custom.css" rel="stylesheet">' },
+   * //     { type: 'push', content: '<style>body { margin: 0; }</style>' }
+   * //   ],
+   * //   scripts: [
+   * //     { type: 'prepend', content: '<script src="/js/critical.js"></script>' }
+   * //   ]
+   * // }
+   */
+  const parseStacks = (html) => {
+    const stacks = {};
+
+    // 確保輸入有效
+    if (!html || typeof html !== 'string') {
+      return stacks;
+    }
+
+    // ========================================
+    // 步驟 1: 處理 @push 區塊
+    // ========================================
+    // @push 將內容添加到堆疊的末尾
+    REGEX.PUSH.lastIndex = 0;
+    let match;
+
+    while ((match = REGEX.PUSH.exec(html)) !== null) {
+      const name = match[1];     // stack 名稱
+      const content = match[2];  // 內容
+
+      // 初始化堆疊（如果不存在）
+      if (!stacks[name]) {
+        stacks[name] = [];
+      }
+
+      // 添加到堆疊末尾（push）
+      stacks[name].push({
+        type: 'push',
+        content: content.trim()
+      });
+    }
+
+    // ========================================
+    // 步驟 2: 處理 @prepend 區塊
+    // ========================================
+    // @prepend 將內容添加到堆疊的開頭
+    REGEX.PREPEND.lastIndex = 0;
+
+    while ((match = REGEX.PREPEND.exec(html)) !== null) {
+      const name = match[1];     // stack 名稱
+      const content = match[2];  // 內容
+
+      // 初始化堆疊（如果不存在）
+      if (!stacks[name]) {
+        stacks[name] = [];
+      }
+
+      // 添加到堆疊開頭（prepend）
+      stacks[name].push({
+        type: 'prepend',
+        content: content.trim()
+      });
+    }
+
+    return stacks;
   };
 
   /**
@@ -2078,6 +2241,23 @@ export default function vitePluginHtmlKit(options = {}) {
       const filename = ctx?.filename ? path.basename(ctx.filename) : 'index.html';
 
       // ========================================
+      // 步驟 0.5: 保護 @verbatim 區塊
+      // ========================================
+      // 在所有處理之前，提取並保護 @verbatim 區塊
+      // 這些區塊的內容將完全不被 Blade 和 Lodash Template 處理
+      //
+      // 策略：
+      // 1. 提取所有 @verbatim...@endverbatim 區塊
+      // 2. 用 HTML 註釋佔位符替換
+      // 3. 在 Lodash Template 編譯後恢復原始內容
+      const verbatimBlocks = [];
+      html = html.replace(REGEX.VERBATIM, (match, content) => {
+        const index = verbatimBlocks.length;
+        verbatimBlocks.push(content);
+        return `<!-- __VPHK_VERBATIM_${index}__ -->`;
+      });
+
+      // ========================================
       // 步驟 1: 處理佈局繼承（Layout Inheritance）
       // ========================================
       // 為什麼放在第一步：
@@ -2175,7 +2355,24 @@ export default function vitePluginHtmlKit(options = {}) {
         const compiled = lodash.template(fullHtml, defaultCompilerOptions);
 
         // 執行函數，注入全域資料，生成最終 HTML
-        return compiled(globalData);
+        let result = compiled(globalData);
+
+        // ========================================
+        // 步驟 5: 恢復 @verbatim 區塊的原始內容
+        // ========================================
+        // 將 HTML 註釋佔位符替換為原始內容
+        // 這確保前端框架（Vue.js、Alpine.js）可以處理原始的 {{ }} 語法
+        //
+        // 恢復規則：
+        // <!-- __VPHK_VERBATIM_0__ --> -> 原始 verbatim 內容
+        if (verbatimBlocks.length > 0) {
+          result = result.replace(/<!-- __VPHK_VERBATIM_(\d+)__ -->/g, (match, indexStr) => {
+            const index = parseInt(indexStr, 10);
+            return verbatimBlocks[index] || match;
+          });
+        }
+
+        return result;
 
       } catch (error) {
         // ========================================
