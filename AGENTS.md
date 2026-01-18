@@ -658,9 +658,9 @@ Slot（槽位）是一種將內容傳遞給組件的機制，類似於 Vue.js �
 
 #### 2. 使用組件（子頁面）
 
-有兩種語法可以選擇：
+**重要：** Slot 只支援 `<include>` 標籤，**不支援** `@include` 指令！
 
-**方法 A：使用 `<include>` 標籤**
+**✅ 正確用法：使用 `<include>` 標籤**
 
 ```html
 <include src="card.html">
@@ -682,25 +682,21 @@ Slot（槽位）是一種將內容傳遞給組件的機制，類似於 Vue.js �
 </include>
 ```
 
-**方法 B：使用 `@include` 指令（Laravel Blade 風格）**
+**❌ 錯誤用法：`@include` 不支援 slot**
 
 ```html
+<!-- 這樣不行！@include 會轉換成自閉合標籤 -->
 @include('card.html')
-  @slot('title')
-    🎉 特別活動
-  @endslot
-
-  @slot('content')
-    <p>這是自訂內容</p>
-  @endslot
-
-  @slot('footer')
-    <button>查看詳情</button>
-  @endslot
+  @slot('title')...@endslot
 @endinclude
 ```
 
-**兩種方法完全等價**，選擇你喜歡的即可！
+**@include 適合簡單引入（無 slot）：**
+
+```html
+<!-- ✅ @include 用於不需要 slot 的簡單引入 -->
+@include('header.html', { title: 'Home', active: 'home' })
+```
 
 #### 3. 部分自訂（使用預設值）
 
@@ -835,14 +831,16 @@ Slot（槽位）是一種將內容傳遞給組件的機制，類似於 Vue.js �
 <!-- 父組件定義 -->
 @slot('name', 'default value')
 
-<!-- 子頁面傳遞 -->
-@slot('name')
-  content here
-@endslot
+<!-- 子頁面傳遞（只支援 <include> 標籤） -->
+<include src="card.html">
+  @slot('name')
+    content here
+  @endslot
+</include>
 
-<!-- 兩種 include 語法都可以 -->
-<include src="...">...</include>
-@include('...')...@endinclude
+<!-- @include vs <include> -->
+<include src="...">...</include>  ✅ 支援 slot
+@include('...')                    ❌ 不支援 slot（會變成自閉合標籤）
 ```
 
 ### 實際範例專案

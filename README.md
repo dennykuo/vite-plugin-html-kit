@@ -193,10 +193,10 @@ Pass content blocks to reusable components.
 
 **Using Components with Slots**:
 
-You can use either `<include>` tag or `@include` directive (both work the same):
+**Important:** Slots only work with `<include>` tag, not with `@include` directive.
 
 ```html
-<!-- Method 1: Using <include> tag -->
+<!-- ✅ Correct: Using <include> tag with slots -->
 <include src="components/card.html">
   @slot('header')
     <h3>Product Name</h3>
@@ -211,28 +211,25 @@ You can use either `<include>` tag or `@include` directive (both work the same):
     <button>Add to Cart</button>
   @endslot
 </include>
+```
 
-<!-- Method 2: Using @include directive (Laravel Blade style) -->
-@include('components/card.html')
-  @slot('header')
-    <h3>Product Name</h3>
-  @endslot
+**@include vs `<include>` for different use cases:**
 
-  @slot('body')
-    <p>Product description here.</p>
-    <p class="price">$49.99</p>
-  @endslot
+```html
+<!-- ✅ Use @include for simple includes without slots -->
+@include('header.html', { title: 'Home', active: 'home' })
 
-  @slot('footer')
-    <button>Add to Cart</button>
-  @endslot
-@endinclude
+<!-- ✅ Use <include> tag when you need slots -->
+<include src="card.html">
+  @slot('title')Product@endslot
+</include>
 ```
 
 **Key Features:**
 - `@slot('name')...@endslot` - Define content to pass to component
 - `@slot('name', 'default')` - Define slot with default value in component
-- Both `<include>` and `@include` work with slots
+- **Only `<include>` tag supports slots** (not `@include` directive)
+- `@include` directive converts to self-closing tag
 - Slots are optional - use defaults if not provided
 
 **Note**: When using components inside loops with dynamic data, pass data via attributes instead of slots to avoid variable scope issues:

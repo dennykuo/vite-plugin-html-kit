@@ -24,11 +24,12 @@
 
 ### 4. 組件系統
 - ✅ `<include src="file.html">` - Include 外部文件
-- ✅ `@include('file.html')...@endinclude` - Blade 風格 include（與 `<include>` 等價）
-- ✅ `@slot('name')...@endslot` - 定義插槽內容
+- ✅ `@include('file.html', { params })` - Blade 風格 include（轉換為自閉合標籤）
+- ✅ `@slot('name')...@endslot` - 定義插槽內容（**只支援 `<include>` 標籤**）
 - ✅ `@slot('name', 'default')` - 插槽佔位符（在組件中定義預設值）
-- ✅ 支援兩種語法：`<include>` 標籤和 `@include` 指令
 - ✅ 屬性傳遞支援
+- ⚠️ **限制：** `@include` 指令不支援 slot（會轉換成自閉合標籤 `<include ... />`）
+- ✅ **Slot 只能配合 `<include>` 標籤使用**
 - ✅ 完整示範：`playground/slot-demo.html`
 
 ### 5. 變數插值

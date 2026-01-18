@@ -537,9 +537,9 @@
             </div>
           </div>
 
-          <!-- 使用方法 A: <include> 標籤 -->
+          <!-- 使用方法：只能用 <include> 標籤 -->
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">2A. 使用方法：&lt;include&gt; 標籤</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">2. 使用 slot 傳遞內容（只支援 &lt;include&gt; 標籤）：</p>
             <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
               <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&lt;include src="simple-card.html"&gt;
   &#64;slot('title')
@@ -554,29 +554,24 @@
     &lt;button&gt;查看詳情&lt;/button&gt;
   &#64;endslot
 &lt;/include&gt;</code></pre>
+              <p class="text-xs text-gray-600 mt-2 bg-amber-50 p-2 rounded border border-amber-200">
+                ⚠️ <strong>注意：</strong>&#64;include 指令<strong>不支援</strong> slot！
+                &#64;include 會轉換成自閉合標籤，無法包含 slot 內容。
+              </p>
             </div>
           </div>
 
-          <!-- 使用方法 B: @include 指令 -->
+          <!-- @include 的正確用法 -->
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">2B. 使用方法：&#64;include 指令（Laravel Blade 風格）</p>
-            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
-              <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&#64;include('simple-card.html')
-  &#64;slot('title')
-    🎉 特別活動
-  &#64;endslot
+            <p class="text-xs font-medium text-gray-500 mb-2">&#64;include 適合簡單引入（無 slot）：</p>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&lt;!-- ✅ &#64;include 用於不需要 slot 的簡單引入 --&gt;
+&#64;include('header.html', { title: 'Home', active: 'home' })
 
-  &#64;slot('content')
-    &lt;p&gt;自訂的卡片內容&lt;/p&gt;
-  &#64;endslot
-
-  &#64;slot('footer')
-    &lt;button&gt;查看詳情&lt;/button&gt;
-  &#64;endslot
+&lt;!-- ❌ &#64;include 不支援 slot --&gt;
+&#64;include('card.html')
+  &#64;slot('title')...&#64;endslot  &lt;!-- 這樣不行！ --&gt;
 &#64;endinclude</code></pre>
-              <p class="text-xs text-gray-600 mt-2">
-                💡 兩種方法完全等價，&#64;include 會自動轉換為 &lt;include&gt; 標籤
-              </p>
             </div>
           </div>
 
