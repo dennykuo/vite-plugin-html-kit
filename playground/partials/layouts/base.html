@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@yield('title', '預設標題') | Vite Plugin HTML Kit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  @yield('styles')
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- 頂部導航 -->
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/index.html" class="text-xl font-bold text-gray-900">
+          Vite Plugin HTML Kit
+        </a>
+        <div class="flex items-center gap-4 text-sm">
+          <a href="/index.html" class="text-gray-600 hover:text-gray-900 transition">首頁</a>
+          <a href="/layout-demo.html" class="text-blue-600 font-medium">佈局示範</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主要內容區域 -->
+  <main class="max-w-6xl mx-auto px-6 py-12">
+    @yield('content')
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="bg-gray-900 text-gray-400 mt-12">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <div class="text-center text-sm">
+        @yield('footer', '<p>Vite Plugin HTML Kit</p>')
+      </div>
+    </div>
+  </footer>
+
+  @yield('scripts')
+
+</body>
+</html>

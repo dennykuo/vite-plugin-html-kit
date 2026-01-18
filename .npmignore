@@ -1,0 +1,39 @@
+# 開發檔案
+playground/
+tests/
+.github/
+.vscode/
+
+# 配置檔案
+.editorconfig
+.eslintrc.cjs
+.prettierrc
+改善計劃.md
+改善計劃-v2.md
+
+# Git
+.git
+.gitignore
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 測試
+coverage/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 其他
+*.tgz

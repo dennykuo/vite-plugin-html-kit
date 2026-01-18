@@ -10,6 +10,9 @@ dist/
 dist-ssr/
 *.local
 
+# Test Coverage
+coverage/
+
 # Editor
 .vscode/
 .idea/
@@ -36,3 +39,9 @@ Thumbs.db
 .gemini/
 .claude/
 .shared/
+
+# Backup files
+*.backup
+*.bak
+*~
+partials/
