@@ -334,11 +334,11 @@
 &#64;include('header.html', { name: 'User' })
 
 &#64;foreach(items as item)
-  &lt;div&gt;{{ loop.iteration }}. {{ item }}&lt;/div&gt;
+  &lt;div&gt;&#123;&#123; loop.iteration &#125;&#125;. &#123;&#123; item &#125;&#125;&lt;/div&gt;
 &#64;endforeach
 
 &#64;forelse(tasks as task)
-  &lt;li&gt;{{ task }}&lt;/li&gt;
+  &lt;li&gt;&#123;&#123; task &#125;&#125;&lt;/li&gt;
 &#64;empty
   &lt;p&gt;沒有任務&lt;/p&gt;
 &#64;endforelse</code></pre>
