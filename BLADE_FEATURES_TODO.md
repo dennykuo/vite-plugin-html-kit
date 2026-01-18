@@ -96,44 +96,23 @@
 - ✅ 正確處理 prepend 和 push 的順序
 - ✅ 與其他 Blade 功能（@if、@foreach）整合
 
+### 14. @includeIf/@includeWhen/@includeUnless/@includeFirst - 條件 Include
+- ✅ `@includeIf('file.html')` - 只在檔案存在時 include
+- ✅ `@includeWhen(condition, 'file.html')` - 條件為 true 時 include
+- ✅ `@includeUnless(condition, 'file.html')` - 條件為 false 時 include
+- ✅ `@includeFirst(['file1.html', 'file2.html'])` - include 第一個存在的檔案
+- ✅ 支援傳遞參數 (`{ key: 'value' }` 或 `['key' => 'value']`)
+- ✅ 檔案不存在時靜默失敗（不報錯）
+- ✅ 支援路徑安全檢查
+- ✅ 與其他 Blade 功能完全整合
+
 ---
 
 ## ❌ 未實現功能（前端適用）
 
-### 🟡 中優先級（有用但不緊急）
-
-#### 1. @includeIf/@includeWhen/@includeUnless - 條件 Include
-**用途：** 條件性載入 partial，避免檔案不存在錯誤
-
-**Laravel Blade 語法：**
-```blade
-<!-- 只在檔案存在時 include -->
-@includeIf('partials.header')
-
-<!-- 條件 include -->
-@includeWhen($user->isAdmin, 'partials.admin-panel')
-@includeUnless($user->isGuest, 'partials.user-menu')
-
-<!-- 嘗試多個檔案，使用第一個存在的 -->
-@includeFirst(['custom.header', 'partials.header'])
-```
-
-**對應語法（需要設計）：**
-```blade
-<include-if src="partials/header.html" />
-<include-when condition="{{ user.isAdmin }}" src="partials/admin-panel.html" />
-<include-unless condition="{{ user.isGuest }}" src="partials/user-menu.html" />
-<include-first src="custom/header.html,partials/header.html" />
-```
-
-**實現難度：** ⭐⭐⭐ (較高)
-**預期工作量：** 4-5 小時
-
----
-
 ### 🟢 低優先級（可替代或較少使用）
 
-#### 2. @for/@while - 其他迴圈類型
+#### 1. @for/@while - 其他迴圈類型
 **用途：** 提供更多迴圈選項
 
 **Laravel Blade 語法：**
@@ -154,7 +133,7 @@
 
 ---
 
-#### 3. @continue/@break - 迴圈控制
+#### 2. @continue/@break - 迴圈控制
 **用途：** 控制迴圈執行
 
 **Laravel Blade 語法：**
@@ -174,7 +153,7 @@
 
 ---
 
-#### 4. @class() - 條件類名
+#### 3. @class() - 條件類名
 **用途：** 動態生成 CSS 類名
 
 **Laravel Blade 語法：**
@@ -201,22 +180,16 @@
 2. ✅ **@isset/@empty** - 變數檢查 (2 小時，15 個測試) - 2026-01-17
 3. ✅ **@verbatim** - Vue/Alpine 整合 (2 小時，12 個測試) - 2026-01-18
 4. ✅ **@stack/@push/@prepend** - 資源管理 (4 小時，12 個測試) - 2026-01-18
+5. ✅ **@includeIf/@includeWhen/@includeUnless/@includeFirst** - 條件 Include (4 小時，19 個測試) - 2026-01-18
 
-**實際工作量：** 9 小時
-
----
-
-### 第一階段（可選進階功能）
-1. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-
-**預估工作量：** 4-5 小時
+**實際工作量：** 13 小時
 
 ---
 
-### 第二階段（錦上添花）- 可選
-2. **@for/@while** - 其他迴圈 ⭐⭐
-3. **@continue/@break** - 迴圈控制 ⭐⭐
-4. **@class()** - 條件類名 ⭐⭐⭐
+### 可選進階功能
+1. **@for/@while** - 其他迴圈 ⭐⭐
+2. **@continue/@break** - 迴圈控制 ⭐⭐
+3. **@class()** - 條件類名 ⭐⭐⭐
 
 **預估工作量：** 7-9 小時
 
@@ -261,6 +234,6 @@
 
 ---
 
-**文檔版本：** 1.1
+**文檔版本：** 1.2
 **最後更新：** 2026-01-18
 **維護者：** vite-plugin-html-kit

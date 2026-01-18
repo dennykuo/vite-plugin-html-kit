@@ -507,6 +507,42 @@ const REGEX = {
   BLADE_INCLUDE: /@include\s*\(\s*(['"])([^'"]+)\1\s*(?:,\s*([\s\S]*?))?\s*\)/gi,
 
   /**
+   * 匹配 @includeIf 指令 - 只在檔案存在時 include
+   *
+   * 語法：
+   * @includeIf('file.html')
+   * @includeIf('file.html', { key: 'value' })
+   */
+  INCLUDE_IF: /@includeIf\s*\(\s*(['"])([^'"]+)\1\s*(?:,\s*([\s\S]*?))?\s*\)/gi,
+
+  /**
+   * 匹配 @includeWhen 指令 - 條件為 true 時 include
+   *
+   * 語法：
+   * @includeWhen(condition, 'file.html')
+   * @includeWhen(condition, 'file.html', { key: 'value' })
+   */
+  INCLUDE_WHEN: /@includeWhen\s*\(\s*([\s\S]+?)\s*,\s*(['"])([^'"]+)\2\s*(?:,\s*([\s\S]*?))?\s*\)/gi,
+
+  /**
+   * 匹配 @includeUnless 指令 - 條件為 false 時 include
+   *
+   * 語法：
+   * @includeUnless(condition, 'file.html')
+   * @includeUnless(condition, 'file.html', { key: 'value' })
+   */
+  INCLUDE_UNLESS: /@includeUnless\s*\(\s*([\s\S]+?)\s*,\s*(['"])([^'"]+)\2\s*(?:,\s*([\s\S]*?))?\s*\)/gi,
+
+  /**
+   * 匹配 @includeFirst 指令 - include 第一個存在的檔案
+   *
+   * 語法：
+   * @includeFirst(['file1.html', 'file2.html'])
+   * @includeFirst(['file1.html', 'file2.html'], { key: 'value' })
+   */
+  INCLUDE_FIRST: /@includeFirst\s*\(\s*\[([\s\S]+?)\]\s*(?:,\s*([\s\S]*?))?\s*\)/gi,
+
+  /**
    * 匹配 include 標籤（自閉合和非自閉合）
    * 注意：(?<!\/) 負向後行斷言防止錯誤匹配自閉合標籤
    */
@@ -1044,28 +1080,18 @@ export default function vitePluginHtmlKit(options = {}) {
     // ========================================
     // 步驟 1.8: 轉換 @include 為 <include> 標籤
     // ========================================
-    // 將 Blade 風格的 @include 轉換為 <include> 標籤
-    //
-    // 轉換規則：
-    // @include('file.html') -> <include src="file.html" />
-    // @include('file.html', { key: 'value' }) -> <include src="file.html" key="{{ value }}" />
-    // @include('file.html', ['key' => 'value']) -> <include src="file.html" key="{{ value }}" />
-    //
-    // 為什麼在這裡處理：
-    // - 需要在其他 Blade 語法轉換之前（保留參數中的變數）
-    // - 轉換後的 <include> 標籤會在 resolveIncludes 階段處理
-    //
-    // 支援兩種參數語法：
-    // 1. JavaScript 物件語法: { key: 'value' }
-    // 2. PHP 陣列語法: ['key' => 'value']
-    processed = processed.replace(REGEX.BLADE_INCLUDE, (match, quote, filePath, params) => {
-      // 如果沒有參數，返回簡單的自閉合標籤
+
+    /**
+     * 輔助函數：將 @include 參數轉換為 HTML 屬性字串
+     *
+     * @param {string} params - 參數字串，例如 "{ key: 'value' }" 或 "['key' => 'value']"
+     * @returns {string} HTML 屬性字串，例如 'key="{{ value }}"'
+     */
+    const parseIncludeParams = (params) => {
       if (!params || params.trim() === '') {
-        return `<include src="${filePath}" />`;
+        return '';
       }
 
-      // 處理參數：將 PHP 陣列風格或 JS 物件轉換為 HTML 屬性
-      let attributes = '';
       params = params.trim();
 
       // 移除外層的 { } 或 [ ]
@@ -1107,9 +1133,90 @@ export default function vitePluginHtmlKit(options = {}) {
         paramPairs.push(`${key}="{{ ${value} }}"`);
       }
 
-      attributes = paramPairs.join(' ');
+      return paramPairs.join(' ');
+    };
 
-      return `<include src="${filePath}" ${attributes} />`;
+    // 將 Blade 風格的 @include 轉換為 <include> 標籤
+    //
+    // 轉換規則：
+    // @include('file.html') -> <include src="file.html" />
+    // @include('file.html', { key: 'value' }) -> <include src="file.html" key="{{ value }}" />
+    // @include('file.html', ['key' => 'value']) -> <include src="file.html" key="{{ value }}" />
+    //
+    // 為什麼在這裡處理：
+    // - 需要在其他 Blade 語法轉換之前（保留參數中的變數）
+    // - 轉換後的 <include> 標籤會在 resolveIncludes 階段處理
+    //
+    // 支援兩種參數語法：
+    // 1. JavaScript 物件語法: { key: 'value' }
+    // 2. PHP 陣列語法: ['key' => 'value']
+    processed = processed.replace(REGEX.BLADE_INCLUDE, (match, quote, filePath, params) => {
+      const attributes = parseIncludeParams(params);
+      if (attributes) {
+        return `<include src="${filePath}" ${attributes} />`;
+      }
+      return `<include src="${filePath}" />`;
+    });
+
+    // ========================================
+    // 步驟 1.9: 轉換條件 include 指令
+    // ========================================
+
+    // 處理 @includeWhen(condition, 'file.html', params)
+    // 轉換為條件包裹的 <include> 標籤
+    processed = processed.replace(REGEX.INCLUDE_WHEN, (match, condition, quote, filePath, params) => {
+      const attributes = parseIncludeParams(params);
+      const includeTag = attributes
+        ? `<include src="${filePath}" ${attributes} />`
+        : `<include src="${filePath}" />`;
+
+      // 使用 Lodash template 的條件語法包裹 include
+      return `<% if (${condition.trim()}) { %>${includeTag}<% } %>`;
+    });
+
+    // 處理 @includeUnless(condition, 'file.html', params)
+    // 轉換為否定條件包裹的 <include> 標籤
+    processed = processed.replace(REGEX.INCLUDE_UNLESS, (match, condition, quote, filePath, params) => {
+      const attributes = parseIncludeParams(params);
+      const includeTag = attributes
+        ? `<include src="${filePath}" ${attributes} />`
+        : `<include src="${filePath}" />`;
+
+      // 使用否定條件
+      return `<% if (!(${condition.trim()})) { %>${includeTag}<% } %>`;
+    });
+
+    // 處理 @includeIf('file.html', params)
+    // 添加特殊屬性 data-include-if，在 resolveIncludes 階段檢查檔案是否存在
+    processed = processed.replace(REGEX.INCLUDE_IF, (match, quote, filePath, params) => {
+      const attributes = parseIncludeParams(params);
+      const includeTag = attributes
+        ? `<include src="${filePath}" data-include-if="true" ${attributes} />`
+        : `<include src="${filePath}" data-include-if="true" />`;
+
+      return includeTag;
+    });
+
+    // 處理 @includeFirst(['file1.html', 'file2.html'], params)
+    // 添加特殊屬性 data-include-first，在 resolveIncludes 階段找第一個存在的檔案
+    processed = processed.replace(REGEX.INCLUDE_FIRST, (match, fileList, params) => {
+      // 解析檔案列表
+      // 移除引號並分割
+      const files = fileList
+        .split(',')
+        .map(f => f.trim().replace(/^['"]|['"]$/g, ''))
+        .filter(f => f);
+
+      // 使用第一個檔案作為預設 src，並將完整列表放在 data-include-first 中
+      const firstFile = files[0] || '';
+      const attributes = parseIncludeParams(params);
+      const filesJson = JSON.stringify(files).replace(/"/g, '&quot;');
+
+      const includeTag = attributes
+        ? `<include src="${firstFile}" data-include-first="${filesJson}" ${attributes} />`
+        : `<include src="${firstFile}" data-include-first="${filesJson}" />`;
+
+      return includeTag;
     });
 
     // ========================================
@@ -1902,7 +2009,54 @@ export default function vitePluginHtmlKit(options = {}) {
           // ----------------------------------------
           const rootPath = viteConfig?.root || process.cwd();
           const absolutePartialsDir = path.resolve(rootPath, partialsDir);
-          const filePath = path.resolve(absolutePartialsDir, src);
+
+          // ----------------------------------------
+          // 步驟 3.2.1: 處理 @includeFirst - 找第一個存在的檔案
+          // ----------------------------------------
+          const includeFirstAttr = attributesStr?.match(/data-include-first=["']([^"']+)["']/);
+          if (includeFirstAttr) {
+            try {
+              // 解析檔案列表（從 HTML 實體解碼）
+              const filesJson = includeFirstAttr[1].replace(/&quot;/g, '"');
+              const files = JSON.parse(filesJson);
+
+              // 找到第一個存在的檔案
+              let foundFile = null;
+              let foundPath = null;
+
+              for (const file of files) {
+                const testPath = path.resolve(absolutePartialsDir, file);
+
+                // 安全性檢查
+                if (!testPath.startsWith(absolutePartialsDir)) {
+                  continue;
+                }
+
+                if (fs.existsSync(testPath)) {
+                  foundFile = file;
+                  foundPath = testPath;
+                  break;
+                }
+              }
+
+              // 如果沒有找到任何檔案，靜默失敗（@includeFirst 的預期行為）
+              if (!foundFile || !foundPath) {
+                return '';
+              }
+
+              // 更新 src 和 filePath 為找到的檔案
+              src = foundFile;
+              var filePath = foundPath;
+
+              // 移除 data-include-first 屬性，避免再次處理
+              attributesStr = attributesStr.replace(/\s*data-include-first=["'][^"']*["']/, '');
+            } catch (e) {
+              // 解析失敗，靜默失敗
+              return '';
+            }
+          } else {
+            var filePath = path.resolve(absolutePartialsDir, src);
+          }
 
           // 🔒 安全性檢查：路徑遍歷攻擊防護
           // 防止惡意路徑如 '../../../etc/passwd'
@@ -1916,15 +2070,28 @@ export default function vitePluginHtmlKit(options = {}) {
             return error.toHTMLComment();
           }
 
-          // 檢查檔案是否存在
-          if (!fs.existsSync(filePath)) {
-            const error = createAndLogError(ErrorCodes.INCLUDE_FILE_NOT_FOUND, [src], {
-              includePath: src,
-              searchedPath: filePath,
-              partialsDir: absolutePartialsDir,
-              currentFile
-            });
-            return error.toHTMLComment();
+          // ----------------------------------------
+          // 步驟 3.2.2: 處理 @includeIf - 只在檔案存在時 include
+          // ----------------------------------------
+          const includeIfAttr = attributesStr?.match(/data-include-if=["']true["']/);
+          if (includeIfAttr) {
+            // 如果檔案不存在，靜默失敗（不報錯）
+            if (!fs.existsSync(filePath)) {
+              return '';
+            }
+            // 移除 data-include-if 屬性，避免再次處理
+            attributesStr = attributesStr.replace(/\s*data-include-if=["']true["']/, '');
+          } else {
+            // 一般的 include：檔案不存在時報錯
+            if (!fs.existsSync(filePath)) {
+              const error = createAndLogError(ErrorCodes.INCLUDE_FILE_NOT_FOUND, [src], {
+                includePath: src,
+                searchedPath: filePath,
+                partialsDir: absolutePartialsDir,
+                currentFile
+              });
+              return error.toHTMLComment();
+            }
           }
 
           try {

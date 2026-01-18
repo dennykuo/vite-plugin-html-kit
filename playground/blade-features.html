@@ -447,5 +447,62 @@
       </div>
     </section>
 
+    <!-- 12. 條件 Include -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-lime-100 text-lime-600 text-xs font-bold">12</span>
+          條件 Include
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          根據條件或檔案存在性來 include 檔案，避免錯誤並提升靈活性
+        </p>
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">@includeIf - 只在檔案存在時 include：</p>
+            <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
+              <pre class="text-xs font-mono text-gray-700"><code>@includeIf('custom-header.html')
+{{-- 如果檔案不存在，靜默失敗（不報錯） --}}</code></pre>
+              <p class="text-xs text-gray-600 mt-2">
+                適用於可選的自訂 partial，不會因檔案缺失而中斷
+              </p>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">@includeWhen - 條件為 true 時 include：</p>
+            <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
+              <pre class="text-xs font-mono text-gray-700"><code>@includeWhen(user.isAdmin, 'admin-menu.html')
+@includeWhen(showDebug, 'debug-panel.html', { mode: 'development' })</code></pre>
+              <p class="text-xs text-gray-600 mt-2">
+                只在指定條件為 true 時載入 partial
+              </p>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">@includeUnless - 條件為 false 時 include：</p>
+            <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
+              <pre class="text-xs font-mono text-gray-700"><code>@includeUnless(user.isGuest, 'user-menu.html')
+@includeUnless(isProduction, 'dev-tools.html')</code></pre>
+              <p class="text-xs text-gray-600 mt-2">
+                等同於 @includeWhen(!condition, ...)，語義更清晰
+              </p>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">@includeFirst - include 第一個存在的檔案：</p>
+            <div class="bg-lime-50 rounded-lg p-3 border border-lime-100">
+              <pre class="text-xs font-mono text-gray-700"><code>@includeFirst(['custom-footer.html', 'default-footer.html'])
+@includeFirst(['theme/header.html', 'partials/header.html'], { title: 'Home' })</code></pre>
+              <p class="text-xs text-gray-600 mt-2">
+                按順序檢查多個檔案，使用第一個找到的。適合主題系統或 fallback 機制
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 @endsection
