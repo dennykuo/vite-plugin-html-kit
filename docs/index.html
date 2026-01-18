@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vite-plugin-html-kit 文件</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    html { scroll-behavior: smooth; }
+    .sidebar-link.active { background-color: rgb(59 130 246 / 0.1); color: rgb(37 99 235); border-left-color: rgb(37 99 235); }
+    pre code.hljs { padding: 1rem; border-radius: 0.5rem; }
+    .prose pre { margin: 0; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📦</span>
+          <span class="font-bold text-xl text-gray-900">vite-plugin-html-kit</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/dennykuo/vite-plugin-html-kit" target="_blank" class="text-gray-600 hover:text-gray-900 transition">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </a>
+          <a href="https://www.npmjs.com/package/vite-plugin-html-kit" target="_blank" class="text-gray-600 hover:text-gray-900 transition">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8H0zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331v5.331zm4 0v1.336H8.001V8.667h5.334v5.332h-2.669v-.001zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002v5.331z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex pt-16">
+    <!-- Sidebar -->
+    <aside class="hidden lg:block fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-gray-200 overflow-y-auto">
+      <nav class="p-4 space-y-1">
+        <p class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">開始使用</p>
+        <a href="#installation" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">安裝</a>
+        <a href="#configuration" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">Vite 設定</a>
+        <a href="#basic-usage" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">基本用法</a>
+
+        <p class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">核心功能</p>
+        <a href="#includes" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">Include 引入</a>
+        <a href="#variables" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">變數插值</a>
+        <a href="#global-data" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">全域資料</a>
+
+        <p class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">條件與迴圈</p>
+        <a href="#if" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@if 條件判斷</a>
+        <a href="#unless" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@unless 否定條件</a>
+        <a href="#switch" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@switch 開關</a>
+        <a href="#isset-empty" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@isset / @empty</a>
+        <a href="#foreach" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@foreach 迴圈</a>
+        <a href="#forelse" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@forelse 空值處理</a>
+        <a href="#loop-variable" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">$loop 變數</a>
+
+        <p class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">佈局系統</p>
+        <a href="#extends" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@extends 繼承</a>
+        <a href="#section-yield" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@section / @yield</a>
+        <a href="#slots" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@slot 槽位</a>
+
+        <p class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">進階功能</p>
+        <a href="#blade-include" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@include 語法</a>
+        <a href="#conditional-include" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">條件 Include</a>
+        <a href="#stack" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@stack 資源管理</a>
+        <a href="#once" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@once 防重複</a>
+        <a href="#verbatim" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@verbatim</a>
+        <a href="#json" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@json 輸出</a>
+        <a href="#comments" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">Blade 註釋</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-64 min-h-screen">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Hero -->
+        <div class="text-center mb-16">
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">vite-plugin-html-kit</h1>
+          <p class="text-xl text-gray-600 mb-6">強大的 Vite HTML 模板插件，支援 Laravel Blade 風格語法</p>
+          <div class="flex justify-center gap-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Include 系統</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">Blade 語法</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">佈局繼承</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">HMR 支援</span>
+          </div>
+        </div>
+
+        <!-- Installation -->
+        <section id="installation" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 text-sm font-bold">1</span>
+            安裝
+          </h2>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">使用 npm</span>
+            </div>
+            <pre><code class="language-bash">npm install vite-plugin-html-kit --save-dev</code></pre>
+          </div>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-4">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">使用 pnpm</span>
+            </div>
+            <pre><code class="language-bash">pnpm add vite-plugin-html-kit -D</code></pre>
+          </div>
+        </section>
+
+        <!-- Configuration -->
+        <section id="configuration" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 text-sm font-bold">2</span>
+            Vite 設定
+          </h2>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">vite.config.js</span>
+            </div>
+            <pre><code class="language-javascript">import { defineConfig } from 'vite'
+import vitePluginHtmlKit from 'vite-plugin-html-kit'
+
+export default defineConfig({
+  plugins: [
+    vitePluginHtmlKit({
+      // Partial 檔案目錄（預設：'partials'）
+      partialsDir: 'partials',
+
+      // 全域資料，所有模板都可使用
+      data: {
+        siteTitle: '我的網站',
+        author: 'Denny',
+        year: new Date().getFullYear()
+      }
+    })
+  ]
+})</code></pre>
+          </div>
+
+          <h3 class="text-lg font-semibold text-gray-900 mt-8 mb-3">設定選項</h3>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">選項</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">類型</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">預設值</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">說明</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr>
+                  <td class="px-4 py-3 text-sm font-mono text-blue-600">partialsDir</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">string</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">'partials'</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">Partial 檔案存放目錄</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 text-sm font-mono text-blue-600">data</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">object</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">{}</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">全域變數，所有模板可用</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 text-sm font-mono text-blue-600">compilerOptions</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">object</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">{}</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">Lodash 編譯器選項</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Basic Usage -->
+        <section id="basic-usage" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 text-sm font-bold">3</span>
+            基本用法
+          </h2>
+          <p class="text-gray-600 mb-4">建立專案結構：</p>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-text">project/
+├── index.html
+├── partials/
+│   ├── header.html
+│   ├── footer.html
+│   └── layouts/
+│       └── base.html
+└── vite.config.js</code></pre>
+          </div>
+        </section>
+
+        <!-- Includes -->
+        <section id="includes" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Include 引入</h2>
+          <p class="text-gray-600 mb-4">使用 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">&lt;include&gt;</code> 標籤引入 partial 檔案。</p>
+
+          <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3">基本語法</h3>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 引入 partials/header.html --&gt;
+&lt;include src="header.html" /&gt;
+
+&lt;!-- 引入子目錄檔案 --&gt;
+&lt;include src="components/button.html" /&gt;</code></pre>
+          </div>
+
+          <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3">傳遞資料</h3>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 透過屬性傳遞資料 --&gt;
+&lt;include src="card.html" title="標題" content="內容" /&gt;
+
+&lt;!-- partial 中使用 --&gt;
+&lt;div class="card"&gt;
+  &lt;h3&gt;{{ title }}&lt;/h3&gt;
+  &lt;p&gt;{{ content }}&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- Variables -->
+        <section id="variables" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">變數插值</h2>
+          <p class="text-gray-600 mb-4">使用雙花括號 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">{{ }}</code> 插入變數值。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 基本變數 --&gt;
+&lt;h1&gt;{{ siteTitle }}&lt;/h1&gt;
+
+&lt;!-- 物件屬性 --&gt;
+&lt;p&gt;{{ user.name }}&lt;/p&gt;
+
+&lt;!-- 表達式 --&gt;
+&lt;p&gt;{{ price * quantity }}&lt;/p&gt;
+
+&lt;!-- 三元運算 --&gt;
+&lt;span&gt;{{ isActive ? '啟用' : '停用' }}&lt;/span&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- Global Data -->
+        <section id="global-data" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">全域資料</h2>
+          <p class="text-gray-600 mb-4">在 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">vite.config.js</code> 中設定的 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">data</code> 可在所有模板中使用。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">vite.config.js</span>
+            </div>
+            <pre><code class="language-javascript">vitePluginHtmlKit({
+  data: {
+    siteTitle: '我的網站',
+    navigation: [
+      { name: '首頁', url: '/' },
+      { name: '關於', url: '/about' }
+    ]
+  }
+})</code></pre>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-4">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">任意 HTML 檔案</span>
+            </div>
+            <pre><code class="language-html">&lt;title&gt;{{ siteTitle }}&lt;/title&gt;
+
+&lt;nav&gt;
+  @foreach (navigation as item)
+    &lt;a href="{{ item.url }}"&gt;{{ item.name }}&lt;/a&gt;
+  @endforeach
+&lt;/nav&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- @if -->
+        <section id="if" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@if 條件判斷</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">@if (user.isAdmin)
+  &lt;button&gt;管理後台&lt;/button&gt;
+@elseif (user.isMember)
+  &lt;button&gt;會員中心&lt;/button&gt;
+@else
+  &lt;button&gt;登入&lt;/button&gt;
+@endif</code></pre>
+          </div>
+        </section>
+
+        <!-- @unless -->
+        <section id="unless" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@unless 否定條件</h2>
+          <p class="text-gray-600 mb-4"><code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@unless</code> 等同於 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@if(!condition)</code>，語義更清晰。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">@unless (user.isGuest)
+  &lt;p&gt;歡迎回來，{{ user.name }}！&lt;/p&gt;
+@else
+  &lt;p&gt;請先登入&lt;/p&gt;
+@endunless</code></pre>
+          </div>
+        </section>
+
+        <!-- @switch -->
+        <section id="switch" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@switch 開關語句</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">@switch (status)
+  @case ('pending')
+    &lt;span class="badge yellow"&gt;待處理&lt;/span&gt;
+  @case ('approved')
+    &lt;span class="badge green"&gt;已核准&lt;/span&gt;
+  @case ('rejected')
+    &lt;span class="badge red"&gt;已拒絕&lt;/span&gt;
+  @default
+    &lt;span class="badge gray"&gt;未知&lt;/span&gt;
+@endswitch</code></pre>
+          </div>
+        </section>
+
+        <!-- @isset / @empty -->
+        <section id="isset-empty" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@isset / @empty 變數檢查</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 檢查變數是否存在且不為 null --&gt;
+@isset (user.profile)
+  &lt;img src="{{ user.profile.avatar }}"&gt;
+@endisset
+
+&lt;!-- 檢查變數是否為空 --&gt;
+@empty (notifications)
+  &lt;p&gt;沒有通知&lt;/p&gt;
+@endempty</code></pre>
+          </div>
+
+          <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p class="text-sm text-blue-800"><strong>提示：</strong><code>@empty</code> 會檢查：null、undefined、false、0、''、[]、{}</p>
+          </div>
+        </section>
+
+        <!-- @foreach -->
+        <section id="foreach" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@foreach 迴圈</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- Blade 風格 --&gt;
+@foreach (products as product)
+  &lt;div class="product"&gt;
+    &lt;h3&gt;{{ product.name }}&lt;/h3&gt;
+    &lt;p&gt;${{ product.price }}&lt;/p&gt;
+  &lt;/div&gt;
+@endforeach
+
+&lt;!-- JavaScript 風格 --&gt;
+@foreach (product of products)
+  &lt;div&gt;{{ product.name }}&lt;/div&gt;
+@endforeach</code></pre>
+          </div>
+        </section>
+
+        <!-- @forelse -->
+        <section id="forelse" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@forelse 空值處理</h2>
+          <p class="text-gray-600 mb-4">結合迴圈和空資料處理，避免額外的 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@if</code> 檢查。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">@forelse (tasks as task)
+  &lt;li&gt;{{ task.title }}&lt;/li&gt;
+@empty
+  &lt;li class="text-gray-400"&gt;沒有任務&lt;/li&gt;
+@endforelse</code></pre>
+          </div>
+        </section>
+
+        <!-- $loop Variable -->
+        <section id="loop-variable" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">$loop 迴圈變數</h2>
+          <p class="text-gray-600 mb-4">在 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@foreach</code> 中自動提供 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">loop</code> 變數。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">屬性</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">說明</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 text-sm">
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.index</td><td class="px-4 py-2 text-gray-600">索引（從 0 開始）</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.iteration</td><td class="px-4 py-2 text-gray-600">迭代次數（從 1 開始）</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.count</td><td class="px-4 py-2 text-gray-600">總數</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.remaining</td><td class="px-4 py-2 text-gray-600">剩餘數量</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.first</td><td class="px-4 py-2 text-gray-600">是否第一個</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.last</td><td class="px-4 py-2 text-gray-600">是否最後一個</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.even</td><td class="px-4 py-2 text-gray-600">是否偶數</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.odd</td><td class="px-4 py-2 text-gray-600">是否奇數</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.depth</td><td class="px-4 py-2 text-gray-600">嵌套深度</td></tr>
+                <tr><td class="px-4 py-2 font-mono text-blue-600">loop.parent</td><td class="px-4 py-2 text-gray-600">父迴圈物件</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-4">
+            <pre><code class="language-html">@foreach (items as item)
+  &lt;div class="{{ loop.first ? 'first' : '' }} {{ loop.last ? 'last' : '' }}"&gt;
+    {{ loop.iteration }}. {{ item }}
+  &lt;/div&gt;
+@endforeach</code></pre>
+          </div>
+        </section>
+
+        <!-- @extends -->
+        <section id="extends" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@extends 佈局繼承</h2>
+          <p class="text-gray-600 mb-4">使用 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@extends</code> 繼承佈局檔案。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">partials/layouts/base.html</span>
+            </div>
+            <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;@yield('title') | 我的網站&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;header&gt;...&lt;/header&gt;
+  &lt;main&gt;
+    @yield('content')
+  &lt;/main&gt;
+  &lt;footer&gt;...&lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-4">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">index.html</span>
+            </div>
+            <pre><code class="language-html">@extends('layouts/base.html')
+
+@section('title', '首頁')
+
+@section('content')
+  &lt;h1&gt;歡迎來到首頁&lt;/h1&gt;
+  &lt;p&gt;這是首頁內容&lt;/p&gt;
+@endsection</code></pre>
+          </div>
+        </section>
+
+        <!-- @section / @yield -->
+        <section id="section-yield" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@section / @yield</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 完整語法 --&gt;
+@section('sidebar')
+  &lt;ul&gt;
+    &lt;li&gt;選單項目&lt;/li&gt;
+  &lt;/ul&gt;
+@endsection
+
+&lt;!-- 簡寫語法（單行） --&gt;
+@section('title', '頁面標題')
+
+&lt;!-- 輸出 section --&gt;
+@yield('sidebar')
+
+&lt;!-- 帶預設值 --&gt;
+@yield('sidebar', '&lt;p&gt;預設側欄&lt;/p&gt;')</code></pre>
+          </div>
+        </section>
+
+        <!-- @slot -->
+        <section id="slots" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@slot 槽位系統</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">partials/card.html</span>
+            </div>
+            <pre><code class="language-html">&lt;div class="card"&gt;
+  &lt;div class="card-header"&gt;
+    @slot('header', '預設標題')
+  &lt;/div&gt;
+  &lt;div class="card-body"&gt;
+    @slot('body', '預設內容')
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-4">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">使用 slot</span>
+            </div>
+            <pre><code class="language-html">&lt;include src="card.html"&gt;
+  @slot('header')
+    &lt;h3&gt;自訂標題&lt;/h3&gt;
+  @endslot
+
+  @slot('body')
+    &lt;p&gt;自訂內容&lt;/p&gt;
+  @endslot
+&lt;/include&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- @include (Blade style) -->
+        <section id="blade-include" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@include Blade 語法</h2>
+          <p class="text-gray-600 mb-4">除了 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">&lt;include&gt;</code> 標籤，也支援 Blade 風格的 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@include</code>。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 基本語法 --&gt;
+@include('header.html')
+
+&lt;!-- 傳遞資料（JavaScript 物件） --&gt;
+@include('user-card.html', { name: 'John', role: 'Admin' })
+
+&lt;!-- PHP 陣列語法也支援 --&gt;
+@include('user-card.html', ['name' => 'John'])</code></pre>
+          </div>
+        </section>
+
+        <!-- Conditional Include -->
+        <section id="conditional-include" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">條件 Include</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 只在檔案存在時 include --&gt;
+@includeIf('custom-header.html')
+
+&lt;!-- 條件為 true 時 include --&gt;
+@includeWhen(user.isAdmin, 'admin-panel.html')
+
+&lt;!-- 條件為 false 時 include --&gt;
+@includeUnless(user.isGuest, 'user-menu.html')
+
+&lt;!-- include 第一個存在的檔案 --&gt;
+@includeFirst(['custom-footer.html', 'default-footer.html'])</code></pre>
+          </div>
+        </section>
+
+        <!-- @stack -->
+        <section id="stack" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@stack 資源管理</h2>
+          <p class="text-gray-600 mb-4">從子頁面推送 CSS/JS 資源到佈局，避免重複載入。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">佈局檔案</span>
+            </div>
+            <pre><code class="language-html">&lt;head&gt;
+  &lt;link href="/css/app.css" rel="stylesheet"&gt;
+  @stack('styles')
+&lt;/head&gt;
+&lt;body&gt;
+  @yield('content')
+  &lt;script src="/js/app.js"&gt;&lt;/script&gt;
+  @stack('scripts')
+&lt;/body&gt;</code></pre>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-4">
+            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span class="text-sm text-gray-600">子頁面</span>
+            </div>
+            <pre><code class="language-html">@push('styles')
+  &lt;link href="/css/dashboard.css" rel="stylesheet"&gt;
+@endpush
+
+@push('scripts')
+  &lt;script src="/js/charts.js"&gt;&lt;/script&gt;
+@endpush
+
+&lt;!-- 插入到最前面 --&gt;
+@prepend('styles')
+  &lt;link href="/css/critical.css" rel="stylesheet"&gt;
+@endprepend</code></pre>
+          </div>
+        </section>
+
+        <!-- @once -->
+        <section id="once" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@once 防重複輸出</h2>
+          <p class="text-gray-600 mb-4">確保代碼塊只輸出一次，即使 partial 被多次引入。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 在 partial 中 --&gt;
+@once
+  &lt;script src="/js/chart-library.js"&gt;&lt;/script&gt;
+  &lt;link href="/css/chart-styles.css" rel="stylesheet"&gt;
+@endonce
+
+&lt;div class="chart"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- @verbatim -->
+        <section id="verbatim" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@verbatim 跳過解析</h2>
+          <p class="text-gray-600 mb-4">保護區塊不被 Blade 處理，用於整合 Vue.js、Alpine.js 等前端框架。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">@verbatim
+  &lt;div id="app"&gt;
+    &lt;h1&gt;{{ message }}&lt;/h1&gt;
+    &lt;input v-model="name"&gt;
+    &lt;p&gt;Hello {{ name }}&lt;/p&gt;
+  &lt;/div&gt;
+@endverbatim
+
+&lt;script&gt;
+  new Vue({
+    el: '#app',
+    data: { message: 'Vue.js', name: 'World' }
+  });
+&lt;/script&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- @json -->
+        <section id="json" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@json 輸出</h2>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 基本用法 --&gt;
+&lt;script&gt;
+  const user = @json(user);
+&lt;/script&gt;
+
+&lt;!-- 格式化輸出 --&gt;
+&lt;script&gt;
+  const config = @json(config, true);
+&lt;/script&gt;
+
+&lt;!-- 在 HTML 屬性中使用 --&gt;
+&lt;div data-config='@json(config)'&gt;&lt;/div&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- Comments -->
+        <section id="comments" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Blade 註釋</h2>
+          <p class="text-gray-600 mb-4">Blade 註釋不會出現在最終的 HTML 輸出中，比 HTML 註釋更安全。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">{{-- 這是 Blade 註釋，不會出現在 HTML 中 --}}
+
+{{--
+  多行註釋
+  也支援
+--}}
+
+&lt;!-- 這是 HTML 註釋，會出現在原始碼中 --&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+          <p>vite-plugin-html-kit &copy; 2024 Denny. MIT License.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Syntax highlighting
+    hljs.highlightAll();
+
+    // Active sidebar link
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.sidebar-link');
+
+    function updateActiveLink() {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (scrollY >= sectionTop - 100) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    updateActiveLink();
+  </script>
+</body>
+</html>
