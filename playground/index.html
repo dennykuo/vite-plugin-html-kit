@@ -83,7 +83,7 @@
                   class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">3</span>
             條件判斷 (Conditionals)
           </h2>
-          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@if / &#64;else</span>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&#64;if / &#64;else</span>
         </div>
         <div class="p-6">
           <include src="if.html" />
@@ -98,7 +98,7 @@
                   class="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 text-violet-600 text-xs font-bold">4</span>
             迴圈 (Loops)
           </h2>
-          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@foreach</span>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&#64;foreach</span>
         </div>
         <div class="p-6">
           <include src="loop.html" />
@@ -113,7 +113,7 @@
                   class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">5</span>
             Switch 判斷
           </h2>
-          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@switch</span>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&#64;switch</span>
         </div>
         <div class="p-6">
           <div class="flex flex-wrap gap-4">
@@ -145,12 +145,12 @@
                   class="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-600 text-xs font-bold">6</span>
             組件槽位 (Component Slots)
           </h2>
-          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@slot / @endslot</span>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&#64;slot / &#64;endslot</span>
         </div>
         <div class="p-6">
           <div class="space-y-4">
             <p class="text-sm text-gray-600 mb-4">
-              使用 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">@slot</code> 將內容塊傳遞給可重用組件
+              使用 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">&#64;slot</code> 將內容塊傳遞給可重用組件
             </p>
 
             <div class="grid md:grid-cols-2 gap-4">
@@ -211,7 +211,7 @@
                   class="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 text-xs font-bold">7</span>
             佈局繼承 (Layout Inheritance)
           </h2>
-          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@extends / @section / @yield</span>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&#64;extends / &#64;section / &#64;yield</span>
         </div>
         <div class="p-6">
           <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-6 border border-cyan-100">
@@ -224,9 +224,9 @@
               <div class="flex-1">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Laravel Blade 風格的佈局系統</h3>
                 <p class="text-sm text-gray-600 mb-4">
-                  使用 <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">@extends</code>、
-                  <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">@section</code> 和
-                  <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">@yield</code>
+                  使用 <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">&#64;extends</code>、
+                  <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">&#64;section</code> 和
+                  <code class="px-1.5 py-0.5 bg-white rounded text-xs font-mono">&#64;yield</code>
                   建立可重用的頁面佈局
                 </p>
                 <ul class="space-y-2 text-sm text-gray-700 mb-4">
@@ -278,7 +278,7 @@
                   class="flex h-6 w-6 items-center justify-center rounded-full bg-pink-100 text-pink-600 text-xs font-bold">8</span>
             新 Blade 功能示範
           </h2>
-          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">@include / $loop / @forelse</span>
+          <span class="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">&#64;include / $loop / &#64;forelse</span>
         </div>
         <div class="p-6">
           <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-6 border border-pink-100">
@@ -295,22 +295,22 @@
                 </p>
                 <ul class="space-y-2 text-sm text-gray-700 mb-4">
                   <li class="flex items-center gap-2">
-                    <span class="text-pink-500">✓</span> @@section('name', 'value') 簡寫語法
+                    <span class="text-pink-500">✓</span> &#64;section('name', 'value') 簡寫語法
                   </li>
                   <li class="flex items-center gap-2">
-                    <span class="text-pink-500">✓</span> @@include('file.html', {}) Blade 風格引入
+                    <span class="text-pink-500">✓</span> &#64;include('file.html', {}) Blade 風格引入
                   </li>
                   <li class="flex items-center gap-2">
-                    <span class="text-pink-500">✓</span> @@unless 否定條件判斷
+                    <span class="text-pink-500">✓</span> &#64;unless 否定條件判斷
                   </li>
                   <li class="flex items-center gap-2">
                     <span class="text-pink-500">✓</span> $loop 迴圈變數（10 個屬性）
                   </li>
                   <li class="flex items-center gap-2">
-                    <span class="text-pink-500">✓</span> @@forelse 空資料處理
+                    <span class="text-pink-500">✓</span> &#64;forelse 空資料處理
                   </li>
                   <li class="flex items-center gap-2">
-                    <span class="text-pink-500">✓</span> @@once 防止重複輸出
+                    <span class="text-pink-500">✓</span> &#64;once 防止重複輸出
                   </li>
                   <li class="flex items-center gap-2">
                     <span class="text-pink-500">✓</span> {{-- --}} Blade 註釋
