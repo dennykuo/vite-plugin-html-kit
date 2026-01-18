@@ -618,6 +618,247 @@ export default defineConfig({
 
 ---
 
+## 組件槽位 (Slots) 使用指南
+
+### 什麼是 Slot？
+
+Slot（槽位）是一種將內容傳遞給組件的機制，類似於 Vue.js 的插槽系統。它允許你創建可重用的組件，並在使用時傳入自訂內容。
+
+### 基本概念
+
+| 角色 | 職責 | 語法 |
+|------|------|------|
+| **父組件** | 定義 slot 接收位置和預設值 | `@slot('name', 'default')` |
+| **子頁面** | 傳遞內容到 slot | `@slot('name')...@endslot` |
+
+### 完整示例
+
+#### 1. 創建組件（父組件）
+
+`partials/card.html`：
+
+```html
+<div class="card">
+  <!-- 定義標題 slot，預設值為 "預設標題" -->
+  <div class="card-header">
+    <h3>@slot('title', '預設標題')</h3>
+  </div>
+
+  <!-- 定義內容 slot，沒有預設值 -->
+  <div class="card-body">
+    @slot('content')
+  </div>
+
+  <!-- 定義頁尾 slot，帶 HTML 預設值 -->
+  <div class="card-footer">
+    @slot('footer', '<p>預設頁尾</p>')
+  </div>
+</div>
+```
+
+#### 2. 使用組件（子頁面）
+
+有兩種語法可以選擇：
+
+**方法 A：使用 `<include>` 標籤**
+
+```html
+<include src="card.html">
+  @slot('title')
+    🎉 特別活動
+  @endslot
+
+  @slot('content')
+    <p>這是自訂內容</p>
+    <ul>
+      <li>項目 1</li>
+      <li>項目 2</li>
+    </ul>
+  @endslot
+
+  @slot('footer')
+    <button>查看詳情</button>
+  @endslot
+</include>
+```
+
+**方法 B：使用 `@include` 指令（Laravel Blade 風格）**
+
+```html
+@include('card.html')
+  @slot('title')
+    🎉 特別活動
+  @endslot
+
+  @slot('content')
+    <p>這是自訂內容</p>
+  @endslot
+
+  @slot('footer')
+    <button>查看詳情</button>
+  @endslot
+@endinclude
+```
+
+**兩種方法完全等價**，選擇你喜歡的即可！
+
+#### 3. 部分自訂（使用預設值）
+
+你可以只自訂部分 slot，其他使用預設值：
+
+```html
+<include src="card.html">
+  @slot('title')
+    📝 重要通知
+  @endslot
+
+  @slot('content')
+    <p>只自訂標題和內容</p>
+  @endslot
+
+  <!-- footer 沒定義，會使用預設值 "<p>預設頁尾</p>" -->
+</include>
+```
+
+#### 4. 完全使用預設值
+
+如果完全不傳遞 slot，會使用所有預設值：
+
+```html
+<!-- 使用所有預設值 -->
+<include src="card.html" />
+```
+
+### 實際應用場景
+
+#### 場景 1：產品卡片
+
+```html
+<!-- 組件：partials/product-card.html -->
+<div class="product-card">
+  <div class="product-image">
+    @slot('image', '<img src="/placeholder.jpg" />')
+  </div>
+  <h3 class="product-name">
+    @slot('name', '未命名產品')
+  </h3>
+  <p class="product-price">
+    @slot('price', '$0.00')
+  </p>
+  <div class="product-actions">
+    @slot('actions', '<button>查看詳情</button>')
+  </div>
+</div>
+
+<!-- 使用 -->
+<include src="product-card.html">
+  @slot('image')
+    <img src="/products/laptop.jpg" alt="筆記型電腦" />
+  @endslot
+
+  @slot('name')
+    高效能筆記型電腦
+  @endslot
+
+  @slot('price')
+    $1,299.00
+  @endslot
+
+  @slot('actions')
+    <button class="btn-primary">加入購物車</button>
+    <button class="btn-secondary">收藏</button>
+  @endslot
+</include>
+```
+
+#### 場景 2：警告訊息組件
+
+```html
+<!-- 組件：partials/alert.html -->
+<div class="alert alert-{{ type || 'info' }}">
+  <div class="alert-icon">
+    @slot('icon', '📢')
+  </div>
+  <div class="alert-message">
+    @slot('message')
+  </div>
+</div>
+
+<!-- 使用 -->
+<include src="alert.html" type="warning">
+  @slot('icon')
+    ⚠️
+  @endslot
+
+  @slot('message')
+    <strong>注意：</strong>系統將於今晚 10 點進行維護。
+  @endslot
+</include>
+```
+
+### 重要注意事項
+
+#### ⚠️ 在迴圈中使用 Slot
+
+當在迴圈中使用組件時，**建議使用屬性傳遞數據**，而不是 slot：
+
+```html
+<!-- ❌ 不推薦：在迴圈中使用 slot 可能有作用域問題 -->
+@foreach(products as product)
+  <include src="card.html">
+    @slot('title')
+      {{ product.name }}
+    @endslot
+  </include>
+@endforeach
+
+<!-- ✅ 推薦：使用屬性傳遞數據 -->
+@foreach(products as product)
+  <include src="card.html"
+           title="{{ product.name }}"
+           price="{{ product.price }}" />
+@endforeach
+```
+
+#### 💡 Slot vs 屬性
+
+| 使用時機 | 方法 | 範例 |
+|----------|------|------|
+| **簡單文字/變數** | 使用屬性 | `<include title="{{ name }}" />` |
+| **複雜 HTML 結構** | 使用 slot | `@slot('content')<ul>...</ul>@endslot` |
+| **在迴圈中** | 使用屬性 | `<include title="{{ item.name }}" />` |
+| **靜態內容** | 使用 slot | `@slot('header')<h1>標題</h1>@endslot` |
+
+### 快速參考
+
+```html
+<!-- 父組件定義 -->
+@slot('name', 'default value')
+
+<!-- 子頁面傳遞 -->
+@slot('name')
+  content here
+@endslot
+
+<!-- 兩種 include 語法都可以 -->
+<include src="...">...</include>
+@include('...')...@endinclude
+```
+
+### 實際範例專案
+
+查看完整的 slot 示範：
+- 📄 `playground/slot-demo.html` - 完整的 slot 使用示範
+- 📦 `playground/partials/simple-card.html` - 簡單的卡片組件範例
+
+**執行示範：**
+```bash
+npm run dev --prefix playground
+# 訪問 http://localhost:5173/slot-demo.html
+```
+
+---
+
 ## 錯誤處理
 
 ### 錯誤代碼系統

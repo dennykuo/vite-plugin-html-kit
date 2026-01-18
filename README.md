@@ -192,7 +192,11 @@ Pass content blocks to reusable components.
 ```
 
 **Using Components with Slots**:
+
+You can use either `<include>` tag or `@include` directive (both work the same):
+
 ```html
+<!-- Method 1: Using <include> tag -->
 <include src="components/card.html">
   @slot('header')
     <h3>Product Name</h3>
@@ -207,7 +211,29 @@ Pass content blocks to reusable components.
     <button>Add to Cart</button>
   @endslot
 </include>
+
+<!-- Method 2: Using @include directive (Laravel Blade style) -->
+@include('components/card.html')
+  @slot('header')
+    <h3>Product Name</h3>
+  @endslot
+
+  @slot('body')
+    <p>Product description here.</p>
+    <p class="price">$49.99</p>
+  @endslot
+
+  @slot('footer')
+    <button>Add to Cart</button>
+  @endslot
+@endinclude
 ```
+
+**Key Features:**
+- `@slot('name')...@endslot` - Define content to pass to component
+- `@slot('name', 'default')` - Define slot with default value in component
+- Both `<include>` and `@include` work with slots
+- Slots are optional - use defaults if not provided
 
 **Note**: When using components inside loops with dynamic data, pass data via attributes instead of slots to avoid variable scope issues:
 
