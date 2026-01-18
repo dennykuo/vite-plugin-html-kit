@@ -79,144 +79,30 @@
 - ✅ 支援檢查陣列、物件、字串的空值
 - ✅ 空值定義：null, undefined, false, 0, '', [], {}
 
+### 12. @verbatim - 跳過 Blade 解析
+- ✅ `@verbatim...@endverbatim` - 保護區塊內的內容不被 Blade 處理
+- ✅ 與 Vue.js、Alpine.js 等前端框架整合
+- ✅ 保護 `{{ }}` 語法不被處理
+- ✅ 保護 Blade 指令（@if、@foreach 等）不被轉換
+- ✅ 支援多個 verbatim 區塊
+- ✅ 支援多行內容和特殊字元
+
+### 13. @stack/@push/@prepend - CSS/JS 資源管理
+- ✅ `@stack('name')` - 定義資源堆疊位置
+- ✅ `@push('name')...@endpush` - 推送內容到堆疊末尾
+- ✅ `@prepend('name')...@endprepend` - 推送內容到堆疊開頭
+- ✅ 支援多次 push/prepend 到同一個 stack
+- ✅ 支援多層佈局繼承中的 stack 累積
+- ✅ 正確處理 prepend 和 push 的順序
+- ✅ 與其他 Blade 功能（@if、@foreach）整合
+
 ---
 
 ## ❌ 未實現功能（前端適用）
 
-### 🔴 高優先級（實用性高，建議實現）
-
-#### 1. @stack/@push/@prepend - CSS/JS 資源管理
-**用途：** 管理頁面中的 CSS 和 JavaScript，避免重複載入，支援從子頁面推送資源到佈局
-
-**Laravel Blade 語法：**
-
-**佈局文件 (layouts/app.html):**
-```blade
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>@yield('title', 'My App')</title>
-
-  <!-- 預設樣式 -->
-  <link href="/css/app.css" rel="stylesheet">
-
-  <!-- 自訂樣式堆疊 -->
-  @stack('styles')
-</head>
-<body>
-  @yield('content')
-
-  <!-- 預設腳本 -->
-  <script src="/js/app.js"></script>
-
-  <!-- 自訂腳本堆疊 -->
-  @stack('scripts')
-</body>
-</html>
-```
-
-**子頁面 (pages/dashboard.html):**
-```blade
-@extends('layouts/app')
-
-@section('title', 'Dashboard')
-
-@push('styles')
-  <link href="/css/dashboard.css" rel="stylesheet">
-  <link href="/css/charts.css" rel="stylesheet">
-@endpush
-
-@push('scripts')
-  <script src="/js/charts.js"></script>
-  <script>
-    // Dashboard specific code
-  </script>
-@endpush
-
-@section('content')
-  <h1>Dashboard</h1>
-  <!-- ... -->
-@endsection
-```
-
-**最終輸出：**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
-  <link href="/css/app.css" rel="stylesheet">
-  <link href="/css/dashboard.css" rel="stylesheet">
-  <link href="/css/charts.css" rel="stylesheet">
-</head>
-<body>
-  <h1>Dashboard</h1>
-  <!-- ... -->
-  <script src="/js/app.js"></script>
-  <script src="/js/charts.js"></script>
-  <script>
-    // Dashboard specific code
-  </script>
-</body>
-</html>
-```
-
-**@prepend - 在堆疊前面插入：**
-```blade
-@prepend('styles')
-  <!-- 這個會插入到 stack 的最前面 -->
-  <link href="/css/critical.css" rel="stylesheet">
-@endprepend
-```
-
-**技術細節：**
-- Stack 在 processExtends 階段收集
-- 需要在解析 section 時同時解析 @push/@prepend
-- 支援多次 push 到同一個 stack
-- 支援嵌套佈局中的 stack
-
-**實現難度：** ⭐⭐⭐⭐ (高)
-**預期工作量：** 6-8 小時
-
----
-
 ### 🟡 中優先級（有用但不緊急）
 
-#### 2. @verbatim - 跳過 Blade 解析
-**用途：** 與 Vue.js、Alpine.js 等使用 `{{ }}` 語法的框架整合
-
-**Laravel Blade 語法：**
-```blade
-@verbatim
-  <div id="app">
-    <!-- 這裡的 {{ }} 不會被 Blade 處理 -->
-    <h1>{{ message }}</h1>
-    <p>{{ user.name }}</p>
-  </div>
-@endverbatim
-
-<script>
-  // Vue.js 會處理這些變數
-  new Vue({
-    el: '#app',
-    data: { message: 'Hello', user: { name: 'John' } }
-  });
-</script>
-```
-
-**技術細節：**
-- 在 transformLogicTags 之前處理
-- 暫時替換 @verbatim 區塊為佔位符
-- 轉換完成後恢復原始內容
-
-**實現難度：** ⭐⭐ (中等)
-**預期工作量：** 2-3 小時
-
----
-
-#### 4. @includeIf/@includeWhen/@includeUnless - 條件 Include
+#### 1. @includeIf/@includeWhen/@includeUnless - 條件 Include
 **用途：** 條件性載入 partial，避免檔案不存在錯誤
 
 **Laravel Blade 語法：**
@@ -247,7 +133,7 @@
 
 ### 🟢 低優先級（可替代或較少使用）
 
-#### 5. @for/@while - 其他迴圈類型
+#### 2. @for/@while - 其他迴圈類型
 **用途：** 提供更多迴圈選項
 
 **Laravel Blade 語法：**
@@ -268,7 +154,7 @@
 
 ---
 
-#### 6. @continue/@break - 迴圈控制
+#### 3. @continue/@break - 迴圈控制
 **用途：** 控制迴圈執行
 
 **Laravel Blade 語法：**
@@ -288,7 +174,7 @@
 
 ---
 
-#### 7. @class() - 條件類名
+#### 4. @class() - 條件類名
 **用途：** 動態生成 CSS 類名
 
 **Laravel Blade 語法：**
@@ -310,29 +196,29 @@
 
 ## 📊 實現優先級總結
 
-### ✅ 已完成（2026-01-17）
-1. ✅ **@json()** - JSON 輸出 (1 小時，12 個測試)
-2. ✅ **@isset/@empty** - 變數檢查 (2 小時，15 個測試)
+### ✅ 已完成（2026-01-18）
+1. ✅ **@json()** - JSON 輸出 (1 小時，12 個測試) - 2026-01-17
+2. ✅ **@isset/@empty** - 變數檢查 (2 小時，15 個測試) - 2026-01-17
+3. ✅ **@verbatim** - Vue/Alpine 整合 (2 小時，12 個測試) - 2026-01-18
+4. ✅ **@stack/@push/@prepend** - 資源管理 (4 小時，12 個測試) - 2026-01-18
 
-**實際工作量：** 3 小時
+**實際工作量：** 9 小時
 
 ---
 
-### 第一階段（進階功能）- 提升開發體驗
-1. **@stack/@push/@prepend** - 資源管理 ⭐⭐⭐⭐
-2. **@verbatim** - Vue/Alpine 整合 ⭐⭐
+### 第一階段（可選進階功能）
+1. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
 
-**預估工作量：** 8-11 小時
+**預估工作量：** 4-5 小時
 
 ---
 
 ### 第二階段（錦上添花）- 可選
-3. **@includeIf/@includeWhen** - 條件 Include ⭐⭐⭐
-4. **@for/@while** - 其他迴圈 ⭐⭐
-5. **@continue/@break** - 迴圈控制 ⭐⭐
-6. **@class()** - 條件類名 ⭐⭐⭐
+2. **@for/@while** - 其他迴圈 ⭐⭐
+3. **@continue/@break** - 迴圈控制 ⭐⭐
+4. **@class()** - 條件類名 ⭐⭐⭐
 
-**預估工作量：** 11-13 小時
+**預估工作量：** 7-9 小時
 
 ---
 
@@ -375,6 +261,6 @@
 
 ---
 
-**文檔版本：** 1.0
-**最後更新：** 2026-01-17
+**文檔版本：** 1.1
+**最後更新：** 2026-01-18
 **維護者：** vite-plugin-html-kit

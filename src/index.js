@@ -1590,7 +1590,7 @@ export default function vitePluginHtmlKit(options = {}) {
     // - 閉包確保每次呼叫共用同一個 stack
     const layoutStack = [];
 
-    return function process(html, currentFile = 'root', inheritedSections = {}) {
+    return function process(html, currentFile = 'root', inheritedSections = {}, inheritedStacks = {}) {
 
       // ========================================
       // 步驟 1: 檢查是否需要處理佈局繼承
@@ -1639,6 +1639,15 @@ export default function vitePluginHtmlKit(options = {}) {
 
         // 移除所有 @section 定義（內容已提取到 sections 物件）
         html = html.replace(REGEX.SECTION, '');
+
+        // 解析所有 @push/@prepend 區塊
+        // 範例：@push('scripts') <script src="..."></script> @endpush
+        //       stacks = { scripts: [{ type: 'push', content: '<script...>' }] }
+        const stacks = parseStacks(html);
+
+        // 移除所有 @push/@prepend 定義（內容已提取到 stacks 物件）
+        html = html.replace(REGEX.PUSH, '');
+        html = html.replace(REGEX.PREPEND, '');
 
         // ========================================
         // 步驟 5: 讀取佈局檔案（含安全性檢查）
@@ -1689,8 +1698,40 @@ export default function vitePluginHtmlKit(options = {}) {
         // 優先順序：當前頁面 > 繼承的（覆蓋同名 section）
         const allSections = { ...inheritedSections, ...sections };
 
-        // 遞迴處理佈局的 @extends，並傳遞合併後的 sections
-        layoutContent = process(layoutContent, layoutPath, allSections);
+        // 合併所有可用的 stacks：
+        // - inheritedStacks: 從更深層子頁面傳遞來的（子頁面的 push/prepend）
+        // - stacks: 當前頁面定義的（當前子頁面的 push/prepend）
+        // - 佈局檔案的 stacks 會在遞迴處理時被解析
+        //
+        // Stack 累積邏輯：子頁面的 push/prepend 會累積並傳遞給父佈局
+        // 最終在 @stack 位置輸出時，佈局的 stack 會在前，子頁面的 stack 會在後
+        //
+        // 範例執行流程（從外到內）：
+        // 1. Page 有 push('styles', 'dashboard.css')
+        // 2. App Layout 有 push('styles', 'app.css')
+        // 3. Base Layout 有 @stack('styles')
+        //
+        // 處理順序（從內到外）：
+        // - processExtends(Page) 提取 dashboard.css，傳給 App
+        // - processExtends(App) 提取 app.css，合併為 [app.css, dashboard.css]，傳給 Base
+        // - processExtends(Base) 在 @stack 位置輸出 [app.css, dashboard.css]
+        const allStacks = {};
+
+        // 先加入當前頁面的 stacks
+        Object.keys(stacks).forEach(name => {
+          allStacks[name] = [...stacks[name]];
+        });
+
+        // 再加入繼承的 stacks（追加到後面）
+        Object.keys(inheritedStacks).forEach(name => {
+          if (!allStacks[name]) {
+            allStacks[name] = [];
+          }
+          allStacks[name].push(...inheritedStacks[name]);
+        });
+
+        // 遞迴處理佈局的 @extends，並傳遞合併後的 sections 和 stacks
+        layoutContent = process(layoutContent, layoutPath, allSections, allStacks);
 
         // ========================================
         // 步驟 7: 替換 @yield 佔位符
@@ -1719,6 +1760,31 @@ export default function vitePluginHtmlKit(options = {}) {
             return defaultValue;
           }
           return '';
+        });
+
+        // ========================================
+        // 步驟 8: 替換 @stack 佔位符
+        // ========================================
+        // @stack 會被替換為所有 push/prepend 的內容
+        // 順序：prepend 內容（先進先出）+ push 內容（先進先出）
+        layoutContent = layoutContent.replace(REGEX.STACK, (match, name) => {
+          // 如果沒有對應的 stack，返回空字串
+          if (!allStacks[name] || allStacks[name].length === 0) {
+            return '';
+          }
+
+          // 分離 prepend 和 push
+          const prepends = allStacks[name].filter(item => item.type === 'prepend');
+          const pushes = allStacks[name].filter(item => item.type === 'push');
+
+          // 組合內容：prepends 在前，pushes 在後
+          const allContent = [
+            ...prepends.map(item => item.content),
+            ...pushes.map(item => item.content)
+          ];
+
+          // 用換行符連接所有內容
+          return allContent.join('\n');
         });
 
         return layoutContent;
