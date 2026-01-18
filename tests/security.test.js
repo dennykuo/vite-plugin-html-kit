@@ -52,7 +52,7 @@ describe('安全性測試', () => {
       const result = plugin.transformIndexHtml(html);
 
       // 應該返回錯誤訊息而非檔案內容
-      expect(result).toContain('路徑遍歷攻擊偵測');
+      expect(result).toContain('偵測到潛在的路徑遍歷攻擊');
       expect(result).toContain('<!-- [vite-plugin-html-kit] 錯誤');
     });
 
@@ -67,7 +67,7 @@ describe('安全性測試', () => {
       const result = plugin.transformIndexHtml(html);
 
       // 應該返回錯誤訊息
-      expect(result).toContain('路徑遍歷攻擊偵測');
+      expect(result).toContain('偵測到潛在的路徑遍歷攻擊');
     });
 
     it('應該阻止使用 ..\\ 的路徑遍歷攻擊（Windows 風格）', () => {
@@ -84,10 +84,10 @@ describe('安全性測試', () => {
       // 在 Windows 系統上，反斜線是路徑分隔符，應該會偵測到路徑遍歷攻擊
       const isWindows = process.platform === 'win32';
       if (isWindows) {
-        expect(result).toContain('路徑遍歷攻擊偵測');
+        expect(result).toContain('偵測到潛在的路徑遍歷攻擊');
       } else {
         // Linux/Unix 系統會將反斜線視為檔案名稱的一部分
-        expect(result).toContain('找不到檔案');
+        expect(result).toContain('找不到 include 檔案');
       }
     });
 
@@ -142,7 +142,7 @@ describe('安全性測試', () => {
       const result = plugin.transformIndexHtml(html);
 
       // 應該包含警告訊息
-      expect(result).toContain('找不到檔案');
+      expect(result).toContain('找不到 include 檔案');
       expect(result).toContain('nonexistent.html');
       expect(result).toContain('<!-- [vite-plugin-html-kit] 警告');
     });

@@ -39,11 +39,14 @@ export const ErrorCodes = {
   ATTRIBUTE_PARSE_ERROR: 'E4001',
   EXPRESSION_EVAL_ERROR: 'E4002',
   SECTION_PARSE_ERROR: 'E4003',
+  ATTRIBUTE_EVAL_FAILED: 'E4004',
 
   // 模板編譯/執行錯誤 (E5xxx)
   TEMPLATE_COMPILE_ERROR: 'E5001',
   TEMPLATE_RUNTIME_ERROR: 'E5002',
   LODASH_SYNTAX_ERROR: 'E5003',
+  LAYOUT_PROCESSING_ERROR: 'E5004',
+  INCLUDE_PROCESSING_ERROR: 'E5005',
 };
 
 // ====================================================================
@@ -129,6 +132,24 @@ const ErrorMessages = {
     suggestion: '請檢查模板中的 JavaScript 語法是否正確。',
     severity: 'error',
   },
+  [ErrorCodes.ATTRIBUTE_EVAL_FAILED]: {
+    title: '屬性求值失敗',
+    message: (attr, value) => `無法評估屬性 ${attr}="${value}"`,
+    suggestion: '請檢查屬性值中的表達式語法是否正確。',
+    severity: 'warning',
+  },
+  [ErrorCodes.LAYOUT_PROCESSING_ERROR]: {
+    title: '佈局處理錯誤',
+    message: (path) => `處理佈局檔案時發生錯誤: ${path}`,
+    suggestion: '請檢查佈局檔案的語法是否正確。',
+    severity: 'error',
+  },
+  [ErrorCodes.INCLUDE_PROCESSING_ERROR]: {
+    title: 'Include 處理錯誤',
+    message: (path) => `處理 include 檔案時發生錯誤: ${path}`,
+    suggestion: '請檢查 include 檔案的語法是否正確。',
+    severity: 'error',
+  },
 };
 
 // ====================================================================
@@ -169,7 +190,7 @@ export class PluginError extends Error {
     this.title = template.title;
     this.suggestion = template.suggestion;
     this.severity = template.severity;
-    this.context = context;
+    this.context = context || {};
 
     // 捕獲堆疊追蹤
     if (Error.captureStackTrace) {
@@ -191,7 +212,7 @@ export class PluginError extends Error {
     output += `  ${this.message}\n`;
 
     // 加入上下文資訊
-    if (this.context.file) {
+    if (this.context && this.context.file) {
       output += `  📄 檔案: ${this.context.file}`;
       if (this.context.line) {
         output += `:${this.context.line}`;
@@ -205,7 +226,7 @@ export class PluginError extends Error {
     }
 
     // 詳細模式：顯示原始錯誤和堆疊
-    if (verbose) {
+    if (verbose && this.context) {
       if (this.context.source) {
         output += `  📝 來源:\n${this.context.source}\n`;
       }
@@ -225,7 +246,8 @@ export class PluginError extends Error {
    * @returns {string}
    */
   toHTMLComment() {
-    return `<!-- [vite-plugin-html-kit] 錯誤 [${this.code}]: ${this.message} -->`;
+    const label = this.severity === 'error' ? '錯誤' : '警告';
+    return `<!-- [vite-plugin-html-kit] ${label} [${this.code}]: ${this.message} -->`;
   }
 }
 

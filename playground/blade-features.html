@@ -334,7 +334,7 @@
               </div>
               @endisset
               <pre class="text-xs font-mono text-gray-600 mt-2 bg-white p-2 rounded"><code>&#64;isset(user.name)
-  &lt;p&gt;{{ user.name }}&lt;/p&gt;
+  &lt;p&gt;&#123;&#123; user.name &#125;&#125;&lt;/p&gt;
 &#64;endisset</code></pre>
             </div>
           </div>
@@ -374,9 +374,9 @@
           <p class="text-xs font-medium text-gray-500 mb-2">範例：Vue.js 模板</p>
           <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded"><code>&#64;verbatim
   &lt;div id="app"&gt;
-    &lt;h1&gt;{{ message }}&lt;/h1&gt;
+    &lt;h1&gt;&#123;&#123; message &#125;&#125;&lt;/h1&gt;
     &lt;input v-model="name"&gt;
-    &lt;p&gt;Hello {{ name }}&lt;/p&gt;
+    &lt;p&gt;Hello &#123;&#123; name &#125;&#125;&lt;/p&gt;
   &lt;/div&gt;
 &#64;endverbatim
 
@@ -387,7 +387,7 @@
   });
 &lt;/script&gt;</code></pre>
           <p class="text-xs text-gray-600 mt-2">
-            &#64;verbatim 區塊內的 {{ }} 和 Blade 指令不會被處理，完整保留給 Vue.js
+            &#64;verbatim 區塊內的 &#123;&#123; &#125;&#125; 和 Blade 指令不會被處理，完整保留給 Vue.js
           </p>
         </div>
       </div>

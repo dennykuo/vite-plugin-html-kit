@@ -53,7 +53,7 @@ describe('循環引用檢測', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 應該包含循環引用錯誤訊息
-    expect(result).toContain('循環引用偵測');
+    expect(result).toContain('檢測到循環 include 引用');
     // 應該顯示循環路徑
     expect(result).toContain('a.html');
     expect(result).toContain('b.html');
@@ -88,7 +88,7 @@ describe('循環引用檢測', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 應該包含循環引用錯誤訊息
-    expect(result).toContain('循環引用偵測');
+    expect(result).toContain('檢測到循環 include 引用');
     // 應該顯示完整的循環路徑
     expect(result).toContain('a.html');
     expect(result).toContain('b.html');
@@ -131,7 +131,7 @@ describe('循環引用檢測', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 不應該有循環引用錯誤
-    expect(result).not.toContain('循環引用偵測');
+    expect(result).not.toContain('檢測到循環 include 引用');
     // 應該正確渲染所有內容
     expect(result).toContain('A');
     expect(result).toContain('B');
@@ -162,7 +162,7 @@ describe('循環引用檢測', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 應該偵測到自我引用
-    expect(result).toContain('循環引用偵測');
+    expect(result).toContain('檢測到循環 include 引用');
     expect(result).toContain('self.html');
   });
 
@@ -205,7 +205,7 @@ describe('循環引用檢測', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 不應該有循環引用錯誤
-    expect(result).not.toContain('循環引用偵測');
+    expect(result).not.toContain('檢測到循環 include 引用');
     // 應該正確渲染所有層級
     expect(result).toContain('A');
     expect(result).toContain('B');
@@ -243,7 +243,7 @@ describe('循環引用檢測', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 應該偵測到循環引用
-    expect(result).toContain('循環引用偵測');
+    expect(result).toContain('檢測到循環 include 引用');
     // 應該顯示循環部分
     expect(result).toContain('b.html');
     expect(result).toContain('c.html');

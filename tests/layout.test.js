@@ -241,7 +241,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
     const result = plugin.transformIndexHtml(html);
 
     // 應該包含循環引用錯誤訊息
-    expect(result).toContain('循環佈局引用偵測');
+    expect(result).toContain('檢測到循環佈局引用');
     expect(result).toContain('layout-a.html');
     expect(result).toContain('layout-b.html');
   });
