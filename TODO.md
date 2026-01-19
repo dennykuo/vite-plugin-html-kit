@@ -1,0 +1,2 @@
+- 還有一些 blade 上的功能未完全實現，但都是很小的功能
+- README.md、docs 及 playground 中資訊太混雜，要整理並統一
