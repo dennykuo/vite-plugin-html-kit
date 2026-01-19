@@ -28,7 +28,7 @@ describe('@isset/@empty 語法測試', () => {
         @endisset
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -57,7 +57,7 @@ describe('@isset/@empty 語法測試', () => {
         <p>Always shown</p>
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -86,7 +86,7 @@ describe('@isset/@empty 語法測試', () => {
         @endisset
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -114,7 +114,7 @@ describe('@isset/@empty 語法測試', () => {
         @endisset
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -148,7 +148,7 @@ describe('@isset/@empty 語法測試', () => {
         @endisset
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -178,7 +178,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -206,7 +206,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -234,7 +234,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -260,7 +260,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -288,7 +288,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -316,7 +316,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -344,7 +344,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -372,7 +372,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -407,7 +407,7 @@ describe('@isset/@empty 語法測試', () => {
         @endempty
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -440,7 +440,7 @@ describe('@isset/@empty 語法測試', () => {
         @endisset
       `;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });

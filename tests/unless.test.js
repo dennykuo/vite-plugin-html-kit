@@ -87,7 +87,7 @@ plugin.configResolved(mockViteConfig);
  * 測試輔助函數：轉換 HTML
  */
 function transform(html) {
-  return plugin.transformIndexHtml(html, {
+  return plugin.transformIndexHtml.handler(html, {
     filename: 'test.html',
     server: null
   });

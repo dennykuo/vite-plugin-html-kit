@@ -2429,6 +2429,10 @@ export default function vitePluginHtmlKit(options = {}) {
      *
      * 這是整個插件的主要入口點，負責將包含模板語法的 HTML 轉換為最終輸出。
      *
+     * Hook 配置：
+     * - order: 'pre' - 在 Vite 處理資源之前執行
+     * - 確保模板插入的 <script>、<link> 等資源標籤會被 Vite 正確識別和處理
+     *
      * 轉換流程概覽：
      * 1. 處理佈局繼承（@extends + @section + @yield）
      * 2. 轉換 Blade 邏輯標籤（@if, @foreach, @switch）
@@ -2468,7 +2472,9 @@ export default function vitePluginHtmlKit(options = {}) {
      * //   </body>
      * // </html>
      */
-    transformIndexHtml(html, ctx) {
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
       // ========================================
       // 步驟 0: 準備資料上下文和檔案資訊
       // ========================================
@@ -2637,6 +2643,7 @@ export default function vitePluginHtmlKit(options = {}) {
 
         return fullHtml;
       }
+    }
     },
 
     /**

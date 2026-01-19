@@ -66,7 +66,7 @@ test('應該支援 @include("file.html") 語法', () => {
     </div>
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -88,12 +88,12 @@ test('應該支援單引號和雙引號', () => {
   const input1 = `@include('footer.html')`;
   const input2 = `@include("footer.html")`;
 
-  const output1 = plugin.transformIndexHtml(input1, {
+  const output1 = plugin.transformIndexHtml.handler(input1, {
     filename: 'test.html',
     server: null
   });
 
-  const output2 = plugin.transformIndexHtml(input2, {
+  const output2 = plugin.transformIndexHtml.handler(input2, {
     filename: 'test.html',
     server: null
   });
@@ -118,7 +118,7 @@ test('應該支援 @include 傳遞參數', () => {
 
   const input = `@include('card.html', { title: 'Hello' })`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -139,7 +139,7 @@ test('應該支援傳遞多個參數', () => {
 
   const input = `@include('user-card.html', { name: 'John', email: 'john@example.com' })`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -163,7 +163,7 @@ test('應該訪問全域資料', () => {
 
   const input = `@include('greeting.html')`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -184,7 +184,7 @@ test('局部變數應該覆蓋全域變數', () => {
 
   const input = `@include('message.html', { msg: 'Local' })`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -212,7 +212,7 @@ test('應該在 @include 的 partial 中使用 @if', () => {
 
   const input = `@include('conditional.html', { showTitle: true, title: 'Test' })`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -237,7 +237,7 @@ test('應該在 @include 的 partial 中使用 @foreach', () => {
 
   const input = `<ul>@include('list.html', { items: ['A', 'B', 'C'] })</ul>`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -266,7 +266,7 @@ test('應該支援嵌套 @include', () => {
 
   const input = `@include('outer.html', { innerText: 'Nested' })`;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -297,7 +297,7 @@ test('應該與 <include> 標籤共存', () => {
     <include src="tag-style.html" />
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -327,7 +327,7 @@ test('應該高效處理多個 @include', () => {
   }
 
   const startTime = Date.now();
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });

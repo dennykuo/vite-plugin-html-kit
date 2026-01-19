@@ -64,6 +64,40 @@ vite-plugin-html-kit/
 4. **編譯 Lodash Template** - 執行變數插值和 JavaScript 代碼
 5. **恢復 @verbatim 內容** - 將保護的內容恢復原樣
 
+#### ⚡ Hook 執行順序 (order: 'pre')
+
+`transformIndexHtml` 設置為 `order: 'pre'`，確保在 Vite 處理資源之前執行模板轉換。
+
+**為什麼需要 'pre' 順序：**
+
+```javascript
+transformIndexHtml: {
+  order: 'pre',  // 在 Vite 處理資源之前執行
+  handler(html, ctx) {
+    // 模板轉換邏輯
+  }
+}
+```
+
+**好處：**
+- ✅ 模板插入的 `<script>`、`<link>` 等資源標籤會被 Vite 正確識別
+- ✅ Vite 可以對動態插入的資源進行打包和優化
+- ✅ HMR (熱模組替換) 能正確追蹤資源依賴
+
+**範例：**
+```html
+<!-- partials/header.html -->
+<head>
+  <link rel="stylesheet" href="/styles/header.css">
+  <script type="module" src="/scripts/header.js"></script>
+</head>
+
+<!-- index.html -->
+<include src="header.html" />
+```
+
+在 `order: 'pre'` 模式下，Vite 會看到完整的 HTML（包含動態插入的 CSS/JS），並正確處理這些資源的打包和版本控制。
+
 ---
 
 ## 配置選項

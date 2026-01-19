@@ -34,7 +34,7 @@ describe('@verbatim 語法測試', () => {
       </div>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -53,7 +53,7 @@ describe('@verbatim 語法測試', () => {
       </div>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -77,7 +77,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -96,7 +96,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -121,7 +121,7 @@ describe('@verbatim 語法測試', () => {
       </div>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -146,7 +146,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -170,7 +170,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -192,7 +192,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -220,7 +220,7 @@ describe('@verbatim 語法測試', () => {
       </div>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -239,7 +239,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -255,7 +255,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -275,7 +275,7 @@ describe('@verbatim 語法測試', () => {
       @endverbatim
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });

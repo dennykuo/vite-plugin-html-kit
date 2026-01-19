@@ -49,7 +49,7 @@ describe('安全性測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="../../../etc/passwd" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該返回錯誤訊息而非檔案內容
       expect(result).toContain('偵測到潛在的路徑遍歷攻擊');
@@ -64,7 +64,7 @@ describe('安全性測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="/etc/passwd" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該返回錯誤訊息
       expect(result).toContain('偵測到潛在的路徑遍歷攻擊');
@@ -78,7 +78,7 @@ describe('安全性測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="..\\..\\..\\Windows\\System32\\config\\sam" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 在 Linux 系統上，反斜線被視為檔案名稱的一部分，因此會返回找不到檔案
       // 在 Windows 系統上，反斜線是路徑分隔符，應該會偵測到路徑遍歷攻擊
@@ -99,7 +99,7 @@ describe('安全性測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="safe.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該成功載入檔案內容
       expect(result).toContain('Safe content');
@@ -122,7 +122,7 @@ describe('安全性測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="components/button.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該成功載入子目錄中的檔案
       expect(result).toContain('Click me');
@@ -139,7 +139,7 @@ describe('安全性測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="nonexistent.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該包含警告訊息
       expect(result).toContain('找不到 include 檔案');

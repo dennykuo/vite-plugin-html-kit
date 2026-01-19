@@ -55,7 +55,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -86,7 +86,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -118,7 +118,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -137,7 +137,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -168,7 +168,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -199,7 +199,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -218,7 +218,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -233,7 +233,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -252,7 +252,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -273,7 +273,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -294,7 +294,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -315,7 +315,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -330,7 +330,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -349,7 +349,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -366,7 +366,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -403,7 +403,7 @@ describe('條件 Include 測試', () => {
   <main>Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -446,7 +446,7 @@ describe('條件 Include 測試', () => {
   <main>Default Content</main>
 </div>`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -478,7 +478,7 @@ describe('條件 Include 測試', () => {
 
       const input = `@includeWhen(showCard, 'card.html', { title: 'Test', count: 5 })`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -505,7 +505,7 @@ describe('條件 Include 測試', () => {
 
       const input = `@includeWhen(showCard, 'card.html', ['title' => 'PHP Style'])`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });

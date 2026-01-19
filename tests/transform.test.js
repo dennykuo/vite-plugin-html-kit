@@ -36,7 +36,7 @@ describe('語法轉換測試', () => {
         @endif
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該渲染 if 區塊的內容
       expect(result).toContain('Admin Panel');
@@ -51,7 +51,7 @@ describe('語法轉換測試', () => {
         @endif
       `;
 
-      const resultTrue = plugin.transformIndexHtml(htmlTrue);
+      const resultTrue = plugin.transformIndexHtml.handler(htmlTrue);
       expect(resultTrue).toContain('Is Admin');
       expect(resultTrue).not.toContain('Not Admin');
 
@@ -69,7 +69,7 @@ describe('語法轉換測試', () => {
         @endif
       `;
 
-      const resultFalse = pluginFalse.transformIndexHtml(htmlFalse);
+      const resultFalse = pluginFalse.transformIndexHtml.handler(htmlFalse);
       expect(resultFalse).not.toContain('Is Admin');
       expect(resultFalse).toContain('Not Admin');
     });
@@ -92,7 +92,7 @@ describe('語法轉換測試', () => {
         @endif
       `;
 
-      const result1 = plugin1.transformIndexHtml(html);
+      const result1 = plugin1.transformIndexHtml.handler(html);
       expect(result1).toContain('A');
       expect(result1).not.toContain('B');
 
@@ -102,7 +102,7 @@ describe('語法轉換測試', () => {
       });
       plugin2.configResolved({ root: process.cwd() });
 
-      const result2 = plugin2.transformIndexHtml(html);
+      const result2 = plugin2.transformIndexHtml.handler(html);
       expect(result2).toContain('B');
       expect(result2).not.toContain('A');
 
@@ -112,7 +112,7 @@ describe('語法轉換測試', () => {
       });
       plugin3.configResolved({ root: process.cwd() });
 
-      const result3 = plugin3.transformIndexHtml(html);
+      const result3 = plugin3.transformIndexHtml.handler(html);
       expect(result3).toContain('F');
       expect(result3).not.toContain('A');
     });
@@ -128,7 +128,7 @@ describe('語法轉換測試', () => {
         @endif
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
       expect(result).toContain('Hello John, Admin!');
     });
   });
@@ -143,7 +143,7 @@ describe('語法轉換測試', () => {
         </ul>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該渲染所有項目
       expect(result).toContain('<li>Apple</li>');
@@ -160,7 +160,7 @@ describe('語法轉換測試', () => {
         </ul>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該渲染所有項目
       expect(result).toContain('<li>Apple</li>');
@@ -182,7 +182,7 @@ describe('語法轉換測試', () => {
         </ul>
       `;
 
-      const result = pluginEmpty.transformIndexHtml(html);
+      const result = pluginEmpty.transformIndexHtml.handler(html);
 
       // 不應該有 <li> 元素
       expect(result).not.toContain('<li>');
@@ -212,7 +212,7 @@ describe('語法轉換測試', () => {
         @endforeach
       `;
 
-      const result = pluginNested.transformIndexHtml(html);
+      const result = pluginNested.transformIndexHtml.handler(html);
 
       expect(result).toContain('<h3>Fruits</h3>');
       expect(result).toContain('<li>Apple</li>');
@@ -236,7 +236,7 @@ describe('語法轉換測試', () => {
         @endswitch
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該只顯示 admin 的內容
       expect(result).toContain('Administrator');
@@ -263,7 +263,7 @@ describe('語法轉換測試', () => {
         @endswitch
       `;
 
-      const result = pluginGuest.transformIndexHtml(html);
+      const result = pluginGuest.transformIndexHtml.handler(html);
 
       // 應該顯示 default 的內容
       expect(result).toContain('Guest');
@@ -291,7 +291,7 @@ describe('語法轉換測試', () => {
         @endswitch
       `;
 
-      const result = pluginNum.transformIndexHtml(html);
+      const result = pluginNum.transformIndexHtml.handler(html);
 
       expect(result).toContain('OK');
       expect(result).not.toContain('Not Found');
@@ -302,14 +302,14 @@ describe('語法轉換測試', () => {
   describe('變數插值 {{ }}', () => {
     it('應該正確插值簡單變數', () => {
       const html = '<p>{{ user.name }}</p>';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>John</p>');
     });
 
     it('應該正確插值數字', () => {
       const html = '<p>Count: {{ count }}</p>';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>Count: 3</p>');
     });
@@ -321,14 +321,14 @@ describe('語法轉換測試', () => {
       pluginLodash.configResolved({ root: process.cwd() });
 
       const html = '<p>{{ _.capitalize(text) }}</p>';
-      const result = pluginLodash.transformIndexHtml(html);
+      const result = pluginLodash.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>Hello world</p>');
     });
 
     it('應該正確處理表達式', () => {
       const html = '<p>{{ count * 2 }}</p>';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>6</p>');
     });
@@ -349,7 +349,7 @@ describe('語法轉換測試', () => {
         @endif
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<li>Apple</li>');
       expect(result).toContain('<li>Banana</li>');

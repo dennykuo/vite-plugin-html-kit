@@ -53,7 +53,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: testDir });
 
       const html = '<include src="component.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div>Relative Path Component</div>');
     });
@@ -76,7 +76,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: testDir });
 
       const html = '<include src="components/card.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div class="card">Card Component</div>');
     });
@@ -99,7 +99,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: testDir });
 
       const html = '<include src="deep.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div>Deep Path Component</div>');
     });
@@ -120,7 +120,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: testDir });
 
       const html = '<include src="absolute-component.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div>Absolute Path Component</div>');
     });
@@ -148,7 +148,7 @@ describe('PartialsDir 配置測試', () => {
           <p>Custom Content</p>
         @endsection
       `;
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div class="layout">');
       expect(result).toContain('<p>Custom Content</p>');
@@ -167,7 +167,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: testDir });
 
       const html = '<include src="header.html" title="My Header" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<header title="My Header">My Header</header>');
     });
@@ -185,7 +185,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: testDir });
 
       const html = "@include('nav.html', { navTitle: 'Navigation' })";
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<nav>Navigation</nav>');
     });
@@ -215,7 +215,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: customRoot });
 
       const html = '<include src="custom.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div>Custom Root Component</div>');
     });
@@ -238,7 +238,7 @@ describe('PartialsDir 配置測試', () => {
       plugin.configResolved({ root: customRoot });
 
       const html = '<include src="independent.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<div>Independent Component</div>');
     });
@@ -259,7 +259,7 @@ describe('PartialsDir 配置測試', () => {
 
       // 嘗試使用 ../ 逃出 partialsDir
       const html = '<include src="../../../etc/passwd" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該顯示錯誤訊息，而不是實際檔案內容
       expect(result).toContain('<!-- [vite-plugin-html-kit] 錯誤');
@@ -280,7 +280,7 @@ describe('PartialsDir 配置測試', () => {
 
       // 嘗試使用 ../ 逃出 partialsDir
       const html = '<include src="../../../etc/passwd" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該顯示錯誤訊息，而不是實際檔案內容
       expect(result).toContain('<!-- [vite-plugin-html-kit] 錯誤');

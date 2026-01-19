@@ -45,17 +45,17 @@ describe('性能測試', () => {
 
     // 第一次轉換（快取未命中）
     const start1 = performance.now();
-    const result1 = plugin.transformIndexHtml(html);
+    const result1 = plugin.transformIndexHtml.handler(html);
     const time1 = performance.now() - start1;
 
     // 第二次轉換相同內容（應該快取命中）
     const start2 = performance.now();
-    const result2 = plugin.transformIndexHtml(html);
+    const result2 = plugin.transformIndexHtml.handler(html);
     const time2 = performance.now() - start2;
 
     // 第三次轉換相同內容（應該快取命中）
     const start3 = performance.now();
-    const result3 = plugin.transformIndexHtml(html);
+    const result3 = plugin.transformIndexHtml.handler(html);
     const time3 = performance.now() - start3;
 
     // 驗證結果一致性
@@ -89,8 +89,8 @@ describe('性能測試', () => {
     const html1 = '@if (condition1) <p>One</p> @endif';
     const html2 = '@if (condition2) <p>Two</p> @endif';
 
-    const result1 = plugin.transformIndexHtml(html1);
-    const result2 = plugin.transformIndexHtml(html2);
+    const result1 = plugin.transformIndexHtml.handler(html1);
+    const result2 = plugin.transformIndexHtml.handler(html2);
 
     // 不同的 HTML 應該產生不同的結果
     expect(result1).not.toBe(result2);
@@ -112,7 +112,7 @@ describe('性能測試', () => {
 
     for (let i = 0; i < 150; i++) {
       const html = `@if (condition${i}) <p>Content ${i}</p> @endif`;
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
       results.push(result);
       expect(result).toContain(`condition${i}`);
     }
