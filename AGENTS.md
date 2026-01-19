@@ -66,6 +66,87 @@ vite-plugin-html-kit/
 
 ---
 
+## 配置選項
+
+### partialsDir 配置
+
+`partialsDir` 選項指定存放 HTML partial 檔案的目錄，**支援相對路徑和絕對路徑**。
+
+#### 📌 相對路徑（預設）
+
+相對路徑會相對於 `vite.config.js` 中的 `root` 設定解析（預設為專案根目錄）。
+
+```js
+// vite.config.js
+export default defineConfig({
+  plugins: [
+    vitePluginHtmlKit({
+      partialsDir: 'partials'  // → 專案根目錄/partials
+    })
+  ]
+});
+```
+
+**與自訂 root 配合使用：**
+
+```js
+// vite.config.js
+export default defineConfig({
+  root: 'src',  // 設定 root 為 src 目錄
+  plugins: [
+    vitePluginHtmlKit({
+      partialsDir: 'partials'  // → src/partials
+    })
+  ]
+});
+```
+
+#### 📌 絕對路徑
+
+使用絕對路徑可以指定任意位置的目錄，不受 `root` 配置影響。
+
+```js
+// vite.config.js
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
+  plugins: [
+    vitePluginHtmlKit({
+      partialsDir: path.resolve(__dirname, 'src/templates/partials')
+    })
+  ]
+});
+```
+
+**實作原理：**
+
+```javascript
+// 內部實作邏輯
+const absolutePartialsDir = path.isAbsolute(partialsDir)
+  ? partialsDir
+  : path.resolve(rootPath, partialsDir);
+```
+
+#### 📋 使用場景比較
+
+| 使用場景 | 推薦方式 | 範例 |
+|---------|---------|------|
+| 標準專案結構 | 相對路徑 | `partialsDir: 'partials'` |
+| 自訂 root 目錄 | 相對路徑 | `root: 'src'`, `partialsDir: 'partials'` |
+| Monorepo 共享模板 | 絕對路徑 | `path.resolve(__dirname, '../shared/templates')` |
+| 複雜目錄結構 | 絕對路徑 | `path.join(__dirname, 'src/views/partials')` |
+
+#### ⚠️ 注意事項
+
+1. **路徑安全性**：無論使用相對或絕對路徑，插件都會進行路徑遍歷攻擊防護
+2. **路徑分隔符**：在 Windows 系統上使用 `path.resolve()` 或 `path.join()` 確保跨平台相容
+3. **設定優先級**：絕對路徑會完全忽略 `root` 配置，請謹慎使用
+
+---
+
 ## 核心功能
 
 ### 已實現功能（v1.2）

@@ -38,14 +38,46 @@ export default defineConfig({
   plugins: [
     vitePluginHtmlKit({
       // Configuration Options (all optional)
-      partialsDir: 'partials', // (optional) Directory for partial files (default: 'partials')
-      data: {                  // (optional) Global data available in all templates
+      partialsDir: 'partials', // Directory for partial files (default: 'partials')
+                               // Supports both relative and absolute paths
+      data: {                  // Global data available in all templates
         site: 'My Awesome Site',
         author: 'Denny'
       }
     })
   ]
 });
+```
+
+#### PartialsDir Configuration
+
+The `partialsDir` option supports both **relative** and **absolute** paths:
+
+**Relative Path** (default):
+```js
+vitePluginHtmlKit({
+  partialsDir: 'partials'  // Relative to vite.config root (default: project root)
+})
+```
+
+**Absolute Path**:
+```js
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+vitePluginHtmlKit({
+  partialsDir: path.resolve(__dirname, 'src/templates/partials')
+})
+```
+
+**With Custom Root**:
+```js
+// If vite.config has: root: 'src'
+vitePluginHtmlKit({
+  partialsDir: 'partials'  // → Will look in src/partials
+})
 ```
 
 ### 2. Basic HTML Templating

@@ -901,7 +901,9 @@ const evaluateAttributeExpressions = (attrs, dataContext, compilerOptions) => {
  * - 完整的 HMR (Hot Module Replacement) 支援
  *
  * @param {Object} options - 插件配置選項
- * @param {string} [options.partialsDir='partials'] - 存放 HTML partial 檔案的目錄（相對於專案根目錄）
+ * @param {string} [options.partialsDir='partials'] - 存放 HTML partial 檔案的目錄（支援相對路徑或絕對路徑）
+ *   - 相對路徑：相對於 vite.config 中的 root（預設為專案根目錄）
+ *   - 絕對路徑：使用 path.resolve() 或 path.join(__dirname, ...) 指定絕對路徑
  * @param {Object} [options.data={}] - 全域資料物件，所有模板都可以存取
  * @param {Object} [options.compilerOptions={}] - Lodash template 編譯器選項
  * @returns {import('vite').Plugin} Vite 插件物件
@@ -1760,7 +1762,9 @@ export default function vitePluginHtmlKit(options = {}) {
         // 步驟 5: 讀取佈局檔案（含安全性檢查）
         // ========================================
         const rootPath = viteConfig?.root || process.cwd();
-        const absolutePartialsDir = path.resolve(rootPath, partialsDir);
+        const absolutePartialsDir = path.isAbsolute(partialsDir)
+          ? partialsDir
+          : path.resolve(rootPath, partialsDir);
         const layoutFilePath = path.resolve(absolutePartialsDir, layoutPath);
 
         // 🔒 安全性檢查：路徑遍歷攻擊防護
@@ -2008,7 +2012,9 @@ export default function vitePluginHtmlKit(options = {}) {
           // 步驟 3.2: 解析檔案路徑（含安全檢查）
           // ----------------------------------------
           const rootPath = viteConfig?.root || process.cwd();
-          const absolutePartialsDir = path.resolve(rootPath, partialsDir);
+          const absolutePartialsDir = path.isAbsolute(partialsDir)
+            ? partialsDir
+            : path.resolve(rootPath, partialsDir);
 
           // ----------------------------------------
           // 步驟 3.2.1: 處理 @includeFirst - 找第一個存在的檔案
@@ -2311,7 +2317,9 @@ export default function vitePluginHtmlKit(options = {}) {
       // ========================================
       const input = config.build.rollupOptions.input;
       const rootPath = config.root || process.cwd();
-      const absolutePartialsDir = path.resolve(rootPath, partialsDir);
+      const absolutePartialsDir = path.isAbsolute(partialsDir)
+        ? partialsDir
+        : path.resolve(rootPath, partialsDir);
 
       // ========================================
       // 步驟 3: 過濾 Partials 入口點
@@ -2674,7 +2682,9 @@ export default function vitePluginHtmlKit(options = {}) {
       // 取得專案根目錄和 partials 目錄的絕對路徑
       // 用於後續判斷檔案是否在 partials 目錄內
       const rootPath = viteConfig?.root || process.cwd();
-      const absolutePartialsDir = path.resolve(rootPath, partialsDir);
+      const absolutePartialsDir = path.isAbsolute(partialsDir)
+        ? partialsDir
+        : path.resolve(rootPath, partialsDir);
 
       // ========================================
       // 步驟 2: 判斷檔案類型

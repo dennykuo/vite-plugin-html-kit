@@ -5,7 +5,9 @@ import { Plugin } from 'vite';
  */
 export interface VitePluginHtmlKitOptions {
   /**
-   * 存放 HTML partial 檔案的目錄（相對於專案根目錄）
+   * 存放 HTML partial 檔案的目錄
+   * - 相對路徑：相對於 vite.config 中的 root（預設為專案根目錄）
+   * - 絕對路徑：支援絕對路徑（例如：path.resolve(__dirname, 'templates')）
    * @default 'partials'
    */
   partialsDir?: string;
@@ -115,15 +117,17 @@ export interface VitePluginHtmlKitOptions {
  * ```
  *
  * @example
- * 進階配置
+ * 進階配置（含絕對路徑範例）
  * ```typescript
  * import { defineConfig } from 'vite';
  * import vitePluginHtmlKit from 'vite-plugin-html-kit';
+ * import path from 'path';
  *
  * export default defineConfig({
  *   plugins: [
  *     vitePluginHtmlKit({
- *       partialsDir: 'src/components',
+ *       // 支援相對路徑或絕對路徑
+ *       partialsDir: path.resolve(__dirname, 'src/components'),
  *       data: {
  *         env: process.env.NODE_ENV,
  *         config: {
