@@ -57,7 +57,7 @@ test('應該提供 loop.index（從 0 開始）', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -80,7 +80,7 @@ test('應該提供 loop.iteration（從 1 開始）', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -103,7 +103,7 @@ test('應該提供 loop.count（陣列總數）', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -129,7 +129,7 @@ test('應該提供 loop.first 和 loop.last', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -155,7 +155,7 @@ test('應該提供 loop.even 和 loop.odd', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -183,7 +183,7 @@ test('應該提供 loop.remaining（剩餘迭代次數）', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -216,7 +216,7 @@ test('應該在嵌套迴圈中提供 loop.depth', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -243,7 +243,7 @@ test('應該在嵌套迴圈中提供 loop.parent', () => {
     @endforeach
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -272,7 +272,7 @@ test('應該在 @forelse 中提供 $loop 變數', () => {
     @endforelse
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -301,7 +301,7 @@ test('應該高效處理大量迴圈', () => {
   `;
 
   const startTime = Date.now();
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });

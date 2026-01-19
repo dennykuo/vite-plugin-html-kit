@@ -96,7 +96,7 @@ describe('整合測試', () => {
         </html>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 驗證頁面結構
       expect(result).toContain('<!DOCTYPE html>');
@@ -159,7 +159,7 @@ describe('整合測試', () => {
         </article>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<h1>Getting Started with Vite</h1>');
       expect(result).toContain('Jane Smith');
@@ -215,7 +215,7 @@ describe('整合測試', () => {
         </div>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 驗證所有產品都被渲染
       expect(result).toContain('Laptop');
@@ -250,7 +250,7 @@ describe('整合測試', () => {
       pluginEn.configResolved({ root: process.cwd() });
 
       const html = '<include src="welcome.html" />';
-      const resultEn = pluginEn.transformIndexHtml(html);
+      const resultEn = pluginEn.transformIndexHtml.handler(html);
 
       expect(resultEn).toContain('<h1>Welcome</h1>');
       expect(resultEn).toContain('This is an English page');
@@ -266,7 +266,7 @@ describe('整合測試', () => {
       });
       pluginZh.configResolved({ root: process.cwd() });
 
-      const resultZh = pluginZh.transformIndexHtml(html);
+      const resultZh = pluginZh.transformIndexHtml.handler(html);
 
       expect(resultZh).toContain('<h1>歡迎</h1>');
       expect(resultZh).toContain('這是中文頁面');
@@ -299,7 +299,9 @@ describe('整合測試', () => {
       });
 
       expect(plugin.transformIndexHtml).toBeDefined();
-      expect(typeof plugin.transformIndexHtml).toBe('function');
+      expect(typeof plugin.transformIndexHtml).toBe('object');
+      expect(plugin.transformIndexHtml.order).toBe('pre');
+      expect(typeof plugin.transformIndexHtml.handler).toBe('function');
     });
 
     it('應該正確實作 handleHotUpdate hook', () => {
@@ -356,7 +358,7 @@ describe('整合測試', () => {
 
       // 插件會優雅地處理錯誤，返回包含錯誤訊息的 HTML 註解
       // 而不是拋出異常中斷執行
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該返回錯誤訊息（以 HTML 註解形式）
       expect(result).toContain('錯誤');
@@ -371,7 +373,7 @@ describe('整合測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toBe('');
     });
@@ -387,7 +389,7 @@ describe('整合測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<h1>{{ title }}</h1>';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<h1>Test</h1>');
     });
@@ -425,7 +427,7 @@ describe('整合測試', () => {
         </div>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('API: https://api.example.com/v1');
       expect(result).toContain('Toggle Dark Mode');

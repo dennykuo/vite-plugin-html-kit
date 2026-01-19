@@ -50,7 +50,7 @@ describe('循環引用檢測', () => {
     plugin.configResolved({ root: process.cwd() });
 
     const html = '<include src="a.html" />';
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 應該包含循環引用錯誤訊息
     expect(result).toContain('檢測到循環 include 引用');
@@ -85,7 +85,7 @@ describe('循環引用檢測', () => {
     plugin.configResolved({ root: process.cwd() });
 
     const html = '<include src="a.html" />';
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 應該包含循環引用錯誤訊息
     expect(result).toContain('檢測到循環 include 引用');
@@ -128,7 +128,7 @@ describe('循環引用檢測', () => {
       <include src="a.html" />
       <include src="b.html" />
     `;
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 不應該有循環引用錯誤
     expect(result).not.toContain('檢測到循環 include 引用');
@@ -159,7 +159,7 @@ describe('循環引用檢測', () => {
     plugin.configResolved({ root: process.cwd() });
 
     const html = '<include src="self.html" />';
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 應該偵測到自我引用
     expect(result).toContain('檢測到循環 include 引用');
@@ -202,7 +202,7 @@ describe('循環引用檢測', () => {
     plugin.configResolved({ root: process.cwd() });
 
     const html = '<include src="a.html" />';
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 不應該有循環引用錯誤
     expect(result).not.toContain('檢測到循環 include 引用');
@@ -240,7 +240,7 @@ describe('循環引用檢測', () => {
     plugin.configResolved({ root: process.cwd() });
 
     const html = '<include src="a.html" />';
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 應該偵測到循環引用
     expect(result).toContain('檢測到循環 include 引用');

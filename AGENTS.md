@@ -64,6 +64,121 @@ vite-plugin-html-kit/
 4. **編譯 Lodash Template** - 執行變數插值和 JavaScript 代碼
 5. **恢復 @verbatim 內容** - 將保護的內容恢復原樣
 
+#### ⚡ Hook 執行順序 (order: 'pre')
+
+`transformIndexHtml` 設置為 `order: 'pre'`，確保在 Vite 處理資源之前執行模板轉換。
+
+**為什麼需要 'pre' 順序：**
+
+```javascript
+transformIndexHtml: {
+  order: 'pre',  // 在 Vite 處理資源之前執行
+  handler(html, ctx) {
+    // 模板轉換邏輯
+  }
+}
+```
+
+**好處：**
+- ✅ 模板插入的 `<script>`、`<link>` 等資源標籤會被 Vite 正確識別
+- ✅ Vite 可以對動態插入的資源進行打包和優化
+- ✅ HMR (熱模組替換) 能正確追蹤資源依賴
+
+**範例：**
+```html
+<!-- partials/header.html -->
+<head>
+  <link rel="stylesheet" href="/styles/header.css">
+  <script type="module" src="/scripts/header.js"></script>
+</head>
+
+<!-- index.html -->
+<include src="header.html" />
+```
+
+在 `order: 'pre'` 模式下，Vite 會看到完整的 HTML（包含動態插入的 CSS/JS），並正確處理這些資源的打包和版本控制。
+
+---
+
+## 配置選項
+
+### partialsDir 配置
+
+`partialsDir` 選項指定存放 HTML partial 檔案的目錄，**支援相對路徑和絕對路徑**。
+
+#### 📌 相對路徑（預設）
+
+相對路徑會相對於 `vite.config.js` 中的 `root` 設定解析（預設為專案根目錄）。
+
+```js
+// vite.config.js
+export default defineConfig({
+  plugins: [
+    vitePluginHtmlKit({
+      partialsDir: 'partials'  // → 專案根目錄/partials
+    })
+  ]
+});
+```
+
+**與自訂 root 配合使用：**
+
+```js
+// vite.config.js
+export default defineConfig({
+  root: 'src',  // 設定 root 為 src 目錄
+  plugins: [
+    vitePluginHtmlKit({
+      partialsDir: 'partials'  // → src/partials
+    })
+  ]
+});
+```
+
+#### 📌 絕對路徑
+
+使用絕對路徑可以指定任意位置的目錄，不受 `root` 配置影響。
+
+```js
+// vite.config.js
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
+  plugins: [
+    vitePluginHtmlKit({
+      partialsDir: path.resolve(__dirname, 'src/templates/partials')
+    })
+  ]
+});
+```
+
+**實作原理：**
+
+```javascript
+// 內部實作邏輯
+const absolutePartialsDir = path.isAbsolute(partialsDir)
+  ? partialsDir
+  : path.resolve(rootPath, partialsDir);
+```
+
+#### 📋 使用場景比較
+
+| 使用場景 | 推薦方式 | 範例 |
+|---------|---------|------|
+| 標準專案結構 | 相對路徑 | `partialsDir: 'partials'` |
+| 自訂 root 目錄 | 相對路徑 | `root: 'src'`, `partialsDir: 'partials'` |
+| Monorepo 共享模板 | 絕對路徑 | `path.resolve(__dirname, '../shared/templates')` |
+| 複雜目錄結構 | 絕對路徑 | `path.join(__dirname, 'src/views/partials')` |
+
+#### ⚠️ 注意事項
+
+1. **路徑安全性**：無論使用相對或絕對路徑，插件都會進行路徑遍歷攻擊防護
+2. **路徑分隔符**：在 Windows 系統上使用 `path.resolve()` 或 `path.join()` 確保跨平台相容
+3. **設定優先級**：絕對路徑會完全忽略 `root` 配置，請謹慎使用
+
 ---
 
 ## 核心功能
@@ -614,6 +729,245 @@ export default defineConfig({
 @push('scripts')
   <script src="/js/contract-analyzer.js"></script>
 @endpush
+```
+
+---
+
+## 組件槽位 (Slots) 使用指南
+
+### 什麼是 Slot？
+
+Slot（槽位）是一種將內容傳遞給組件的機制，類似於 Vue.js 的插槽系統。它允許你創建可重用的組件，並在使用時傳入自訂內容。
+
+### 基本概念
+
+| 角色 | 職責 | 語法 |
+|------|------|------|
+| **父組件** | 定義 slot 接收位置和預設值 | `@slot('name', 'default')` |
+| **子頁面** | 傳遞內容到 slot | `@slot('name')...@endslot` |
+
+### 完整示例
+
+#### 1. 創建組件（父組件）
+
+`partials/card.html`：
+
+```html
+<div class="card">
+  <!-- 定義標題 slot，預設值為 "預設標題" -->
+  <div class="card-header">
+    <h3>@slot('title', '預設標題')</h3>
+  </div>
+
+  <!-- 定義內容 slot，沒有預設值 -->
+  <div class="card-body">
+    @slot('content')
+  </div>
+
+  <!-- 定義頁尾 slot，帶 HTML 預設值 -->
+  <div class="card-footer">
+    @slot('footer', '<p>預設頁尾</p>')
+  </div>
+</div>
+```
+
+#### 2. 使用組件（子頁面）
+
+**重要：** Slot 只支援 `<include>` 標籤，**不支援** `@include` 指令！
+
+**✅ 正確用法：使用 `<include>` 標籤**
+
+```html
+<include src="card.html">
+  @slot('title')
+    🎉 特別活動
+  @endslot
+
+  @slot('content')
+    <p>這是自訂內容</p>
+    <ul>
+      <li>項目 1</li>
+      <li>項目 2</li>
+    </ul>
+  @endslot
+
+  @slot('footer')
+    <button>查看詳情</button>
+  @endslot
+</include>
+```
+
+**❌ 錯誤用法：`@include` 不支援 slot**
+
+```html
+<!-- 這樣不行！@include 會轉換成自閉合標籤 -->
+@include('card.html')
+  @slot('title')...@endslot
+@endinclude
+```
+
+**@include 適合簡單引入（無 slot）：**
+
+```html
+<!-- ✅ @include 用於不需要 slot 的簡單引入 -->
+@include('header.html', { title: 'Home', active: 'home' })
+```
+
+#### 3. 部分自訂（使用預設值）
+
+你可以只自訂部分 slot，其他使用預設值：
+
+```html
+<include src="card.html">
+  @slot('title')
+    📝 重要通知
+  @endslot
+
+  @slot('content')
+    <p>只自訂標題和內容</p>
+  @endslot
+
+  <!-- footer 沒定義，會使用預設值 "<p>預設頁尾</p>" -->
+</include>
+```
+
+#### 4. 完全使用預設值
+
+如果完全不傳遞 slot，會使用所有預設值：
+
+```html
+<!-- 使用所有預設值 -->
+<include src="card.html" />
+```
+
+### 實際應用場景
+
+#### 場景 1：產品卡片
+
+```html
+<!-- 組件：partials/product-card.html -->
+<div class="product-card">
+  <div class="product-image">
+    @slot('image', '<img src="/placeholder.jpg" />')
+  </div>
+  <h3 class="product-name">
+    @slot('name', '未命名產品')
+  </h3>
+  <p class="product-price">
+    @slot('price', '$0.00')
+  </p>
+  <div class="product-actions">
+    @slot('actions', '<button>查看詳情</button>')
+  </div>
+</div>
+
+<!-- 使用 -->
+<include src="product-card.html">
+  @slot('image')
+    <img src="/products/laptop.jpg" alt="筆記型電腦" />
+  @endslot
+
+  @slot('name')
+    高效能筆記型電腦
+  @endslot
+
+  @slot('price')
+    $1,299.00
+  @endslot
+
+  @slot('actions')
+    <button class="btn-primary">加入購物車</button>
+    <button class="btn-secondary">收藏</button>
+  @endslot
+</include>
+```
+
+#### 場景 2：警告訊息組件
+
+```html
+<!-- 組件：partials/alert.html -->
+<div class="alert alert-{{ type || 'info' }}">
+  <div class="alert-icon">
+    @slot('icon', '📢')
+  </div>
+  <div class="alert-message">
+    @slot('message')
+  </div>
+</div>
+
+<!-- 使用 -->
+<include src="alert.html" type="warning">
+  @slot('icon')
+    ⚠️
+  @endslot
+
+  @slot('message')
+    <strong>注意：</strong>系統將於今晚 10 點進行維護。
+  @endslot
+</include>
+```
+
+### 重要注意事項
+
+#### ⚠️ 在迴圈中使用 Slot
+
+當在迴圈中使用組件時，**建議使用屬性傳遞數據**，而不是 slot：
+
+```html
+<!-- ❌ 不推薦：在迴圈中使用 slot 可能有作用域問題 -->
+@foreach(products as product)
+  <include src="card.html">
+    @slot('title')
+      {{ product.name }}
+    @endslot
+  </include>
+@endforeach
+
+<!-- ✅ 推薦：使用屬性傳遞數據 -->
+@foreach(products as product)
+  <include src="card.html"
+           title="{{ product.name }}"
+           price="{{ product.price }}" />
+@endforeach
+```
+
+#### 💡 Slot vs 屬性
+
+| 使用時機 | 方法 | 範例 |
+|----------|------|------|
+| **簡單文字/變數** | 使用屬性 | `<include title="{{ name }}" />` |
+| **複雜 HTML 結構** | 使用 slot | `@slot('content')<ul>...</ul>@endslot` |
+| **在迴圈中** | 使用屬性 | `<include title="{{ item.name }}" />` |
+| **靜態內容** | 使用 slot | `@slot('header')<h1>標題</h1>@endslot` |
+
+### 快速參考
+
+```html
+<!-- 父組件定義 -->
+@slot('name', 'default value')
+
+<!-- 子頁面傳遞（只支援 <include> 標籤） -->
+<include src="card.html">
+  @slot('name')
+    content here
+  @endslot
+</include>
+
+<!-- @include vs <include> -->
+<include src="...">...</include>  ✅ 支援 slot
+@include('...')                    ❌ 不支援 slot（會變成自閉合標籤）
+```
+
+### 實際範例專案
+
+查看完整的 slot 示範：
+- 📄 `playground/slot-demo.html` - 完整的 slot 使用示範
+- 📦 `playground/partials/simple-card.html` - 簡單的卡片組件範例
+
+**執行示範：**
+```bash
+npm run dev --prefix playground
+# 訪問 http://localhost:5173/slot-demo.html
 ```
 
 ---

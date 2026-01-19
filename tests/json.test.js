@@ -33,7 +33,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -48,7 +48,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -63,7 +63,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -79,7 +79,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -95,7 +95,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -110,7 +110,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -127,7 +127,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -144,7 +144,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -157,7 +157,7 @@ describe('@json() 語法測試', () => {
       <div data-user='@json(user)'>User Info</div>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -191,7 +191,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -222,7 +222,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });
@@ -241,7 +241,7 @@ describe('@json() 語法測試', () => {
       </script>
     `;
 
-    const output = plugin.transformIndexHtml(input, {
+    const output = plugin.transformIndexHtml.handler(input, {
       filename: 'test.html',
       server: null
     });

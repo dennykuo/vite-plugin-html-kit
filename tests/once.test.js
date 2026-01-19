@@ -55,7 +55,7 @@ const mockViteConfig = {
 plugin.configResolved(mockViteConfig);
 
 function transform(html) {
-  return plugin.transformIndexHtml(html, {
+  return plugin.transformIndexHtml.handler(html, {
     filename: 'test.html',
     server: null
   });

@@ -65,7 +65,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
   <h1>Welcome Home</h1>
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<title>Home Page</title>');
     expect(result).toContain('<h1>Welcome Home</h1>');
@@ -102,7 +102,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
   <p>Main content</p>
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<title>Default Title</title>');
     expect(result).toContain('<p>Main content</p>');
@@ -154,7 +154,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
   <script src="app.js"></script>
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<link rel="stylesheet" href="app.css">');
     expect(result).toContain('<header>Header</header>');
@@ -208,7 +208,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
   <article>Post content</article>
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<title>Site - My Post</title>');
     expect(result).toContain('<div class="blog-layout">');
@@ -238,7 +238,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
 
     const html = `@extends('layout-a.html')`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 應該包含循環引用錯誤訊息
     expect(result).toContain('檢測到循環佈局引用');
@@ -276,7 +276,7 @@ describe('佈局繼承測試 (@extends + @section + @yield)', () => {
   <h1>Welcome to {{ siteName }}</h1>
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<title>Home - My Site</title>');
     expect(result).toContain('<h1>Welcome to My Site</h1>');
@@ -330,7 +330,7 @@ describe('槽位系統測試 (@slot)', () => {
   @endslot
 </include>`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<div class="card">');
     expect(result).toContain('<h3>My Card Title</h3>');
@@ -366,7 +366,7 @@ describe('槽位系統測試 (@slot)', () => {
   @endslot
 </include>`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // 檢查包含默認icon和自訂message（忽略空白和換行）
     expect(result.replace(/\s+/g, '')).toContain('<div class="alert-icon">⚠️</div>'.replace(/\s+/g, ''));
@@ -404,7 +404,7 @@ describe('槽位系統測試 (@slot)', () => {
   @endslot
 </include>`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<h2>Panel Title</h2>');
     expect(result).toContain('<p>Panel content</p>');
@@ -439,7 +439,7 @@ describe('槽位系統測試 (@slot)', () => {
   @endslot
 </include>`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<h3>John Doe</h3>');
     expect(result).toContain('<p>Role: Admin</p>');
@@ -470,7 +470,7 @@ describe('槽位系統測試 (@slot)', () => {
   @endslot
 </include>`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<div class="product featured">');
     expect(result).toContain('<div class="product-title">Product A</div>');
@@ -532,7 +532,7 @@ describe('佈局與槽位整合測試', () => {
   </include>
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<div class="box">');
     expect(result).toContain('<p>Box content</p>');
@@ -587,7 +587,7 @@ describe('佈局與槽位整合測試', () => {
   @endforeach
 @endsection`;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<title>My Page</title>');
     expect(result).toContain('<h3>Item 1</h3>');

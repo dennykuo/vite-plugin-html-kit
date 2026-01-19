@@ -25,7 +25,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       <p>Version: {{ version }}</p>
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<h1>My Awesome Site</h1>');
     expect(result).toContain('<p>Version: 1.0.0</p>');
@@ -48,7 +48,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       <p>Version: <%= version %></p>
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<h1>My Awesome Site</h1>');
     expect(result).toContain('<p>Version: 1.0.0</p>');
@@ -71,7 +71,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       <p>By: [[ author ]]</p>
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<h1>My Custom Site</h1>');
     expect(result).toContain('<p>By: Denny</p>');
@@ -90,7 +90,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
 
     // 使用 {{ }} 應該不會被轉換
     const html = '<h1>{{ site }}</h1>';
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     // {{ }} 不應該被轉換，仍然保留在輸出中
     expect(result).toContain('{{ site }}');
@@ -118,7 +118,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       <p>First: <%= items[0] %></p>
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<p>Name: John Doe</p>');
     expect(result).toContain('<p>Age: 35</p>');
@@ -145,7 +145,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       @endif
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('Welcome, Admin User');
     expect(result).toContain('<div class="admin-panel">');
@@ -172,7 +172,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       </ul>
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<li>Product A: $100</li>');
     expect(result).toContain('<li>Product B: $200</li>');
@@ -210,7 +210,7 @@ describe('Compiler Options - 自訂變數插值語法', () => {
       @endforeach
     `;
 
-    const result = plugin.transformIndexHtml(html);
+    const result = plugin.transformIndexHtml.handler(html);
 
     expect(result).toContain('<h2>Tech</h2>');
     expect(result).toContain('<li>Laptop</li>');

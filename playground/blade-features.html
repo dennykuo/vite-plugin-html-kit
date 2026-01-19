@@ -504,5 +504,145 @@
       </div>
     </section>
 
+    <!-- 13. &#64;slot 組件槽位 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">13</span>
+          &#64;slot 組件槽位
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          使用 &#64;slot 將內容區塊傳遞給可重用組件，類似 Vue.js 的插槽系統
+        </p>
+
+        <div class="space-y-6">
+          <!-- 組件定義示範 -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">1. 創建組件（定義 slot 接收位置）：</p>
+            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+              <p class="text-xs text-gray-600 mb-2"><strong>partials/simple-card.html:</strong></p>
+              <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&lt;div class="card"&gt;
+  &lt;div class="card-header"&gt;
+    &lt;h3&gt;&#64;slot('title', '預設標題')&lt;/h3&gt;
+  &lt;/div&gt;
+  &lt;div class="card-body"&gt;
+    &#64;slot('content', '&lt;p&gt;預設內容&lt;/p&gt;')
+  &lt;/div&gt;
+  &lt;div class="card-footer"&gt;
+    &#64;slot('footer', '&lt;span&gt;預設頁尾&lt;/span&gt;')
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+          </div>
+
+          <!-- 使用方法：只能用 <include> 標籤 -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">2. 使用 slot 傳遞內容（只支援 &lt;include&gt; 標籤）：</p>
+            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+              <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&lt;include src="simple-card.html"&gt;
+  &#64;slot('title')
+    🎉 特別活動
+  &#64;endslot
+
+  &#64;slot('content')
+    &lt;p&gt;自訂的卡片內容&lt;/p&gt;
+  &#64;endslot
+
+  &#64;slot('footer')
+    &lt;button&gt;查看詳情&lt;/button&gt;
+  &#64;endslot
+&lt;/include&gt;</code></pre>
+              <p class="text-xs text-gray-600 mt-2 bg-amber-50 p-2 rounded border border-amber-200">
+                ⚠️ <strong>注意：</strong>&#64;include 指令<strong>不支援</strong> slot！
+                &#64;include 會轉換成自閉合標籤，無法包含 slot 內容。
+              </p>
+            </div>
+          </div>
+
+          <!-- @include 的正確用法 -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">&#64;include 適合簡單引入（無 slot）：</p>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&lt;!-- ✅ &#64;include 用於不需要 slot 的簡單引入 --&gt;
+&#64;include('header.html', { title: 'Home', active: 'home' })
+
+&lt;!-- ❌ &#64;include 不支援 slot --&gt;
+&#64;include('card.html')
+  &#64;slot('title')...&#64;endslot  &lt;!-- 這樣不行！ --&gt;
+&#64;endinclude</code></pre>
+            </div>
+          </div>
+
+          <!-- 部分自訂示範 -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">3. 部分自訂（其他使用預設值）：</p>
+            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+              <pre class="text-xs font-mono text-gray-700 bg-white p-3 rounded overflow-x-auto"><code>&lt;include src="simple-card.html"&gt;
+  &#64;slot('title')
+    📝 重要通知
+  &#64;endslot
+
+  &#64;slot('content')
+    &lt;p&gt;只自訂標題和內容&lt;/p&gt;
+  &#64;endslot
+
+  &lt;!-- footer 沒定義，使用預設值 --&gt;
+&lt;/include&gt;</code></pre>
+            </div>
+          </div>
+
+          <!-- 完整示範頁面連結 -->
+          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              <div class="flex-1">
+                <h4 class="font-semibold text-gray-800 mb-1">完整示範頁面</h4>
+                <p class="text-xs text-gray-600 mb-3">
+                  查看包含 4 個實際範例的完整 slot 示範頁面，包含父子元素完整結構和使用說明。
+                </p>
+                <a href="/slot-demo.html"
+                   class="inline-flex items-center gap-1 text-xs bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition">
+                  <span>查看完整示範</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 重要提示 -->
+          <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+            <div class="flex items-start gap-2">
+              <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <div>
+                <h4 class="font-semibold text-amber-800 mb-1 text-sm">在迴圈中使用注意事項</h4>
+                <p class="text-xs text-amber-700 mb-2">
+                  在 &#64;foreach 迴圈中使用組件時，建議使用<strong>屬性傳遞數據</strong>而非 slot：
+                </p>
+                <pre class="text-xs font-mono text-amber-800 bg-white p-2 rounded"><code>&lt;!-- ✅ 推薦 --&gt;
+&#64;foreach(items as item)
+  &lt;include src="card.html" title="{{ item.name }}" /&gt;
+&#64;endforeach
+
+&lt;!-- ❌ 可能有作用域問題 --&gt;
+&#64;foreach(items as item)
+  &lt;include src="card.html"&gt;
+    &#64;slot('title'){{ item.name }}&#64;endslot
+  &lt;/include&gt;
+&#64;endforeach</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 @endsection

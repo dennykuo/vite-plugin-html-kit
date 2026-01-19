@@ -15,7 +15,7 @@ A powerful Vite plugin for HTML templating, including partials, layouts, and dat
 - 🛠 **Blade-like Syntax**: Clean and readable control structures (`@if`, `@foreach`, `@switch`).
 - 📐 **Layout Inheritance**: Laravel Blade style layouts with `@extends`, `@section`, and `@yield`.
 - 🎰 **Component Slots**: Pass content blocks to components using `@slot`.
-- ⚡ **Vite Integration**: Seamless integration with Vite's dev server and build process.
+- ⚡ **Vite Integration**: Seamless integration with Vite's dev server and build process. Uses `order: 'pre'` to ensure template-inserted resources are properly processed by Vite.
 - 🎨 **Zero Config Required**: Works out of the box, but highly customizable.
 
 ## Installation
@@ -38,14 +38,46 @@ export default defineConfig({
   plugins: [
     vitePluginHtmlKit({
       // Configuration Options (all optional)
-      partialsDir: 'partials', // (optional) Directory for partial files (default: 'partials')
-      data: {                  // (optional) Global data available in all templates
+      partialsDir: 'partials', // Directory for partial files (default: 'partials')
+                               // Supports both relative and absolute paths
+      data: {                  // Global data available in all templates
         site: 'My Awesome Site',
         author: 'Denny'
       }
     })
   ]
 });
+```
+
+#### PartialsDir Configuration
+
+The `partialsDir` option supports both **relative** and **absolute** paths:
+
+**Relative Path** (default):
+```js
+vitePluginHtmlKit({
+  partialsDir: 'partials'  // Relative to vite.config root (default: project root)
+})
+```
+
+**Absolute Path**:
+```js
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+vitePluginHtmlKit({
+  partialsDir: path.resolve(__dirname, 'src/templates/partials')
+})
+```
+
+**With Custom Root**:
+```js
+// If vite.config has: root: 'src'
+vitePluginHtmlKit({
+  partialsDir: 'partials'  // → Will look in src/partials
+})
 ```
 
 ### 2. Basic HTML Templating
@@ -192,7 +224,11 @@ Pass content blocks to reusable components.
 ```
 
 **Using Components with Slots**:
+
+**Important:** Slots only work with `<include>` tag, not with `@include` directive.
+
 ```html
+<!-- ✅ Correct: Using <include> tag with slots -->
 <include src="components/card.html">
   @slot('header')
     <h3>Product Name</h3>
@@ -208,6 +244,25 @@ Pass content blocks to reusable components.
   @endslot
 </include>
 ```
+
+**@include vs `<include>` for different use cases:**
+
+```html
+<!-- ✅ Use @include for simple includes without slots -->
+@include('header.html', { title: 'Home', active: 'home' })
+
+<!-- ✅ Use <include> tag when you need slots -->
+<include src="card.html">
+  @slot('title')Product@endslot
+</include>
+```
+
+**Key Features:**
+- `@slot('name')...@endslot` - Define content to pass to component
+- `@slot('name', 'default')` - Define slot with default value in component
+- **Only `<include>` tag supports slots** (not `@include` directive)
+- `@include` directive converts to self-closing tag
+- Slots are optional - use defaults if not provided
 
 **Note**: When using components inside loops with dynamic data, pass data via attributes instead of slots to avoid variable scope issues:
 

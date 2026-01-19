@@ -71,7 +71,7 @@ test('應該支援 @section 簡寫語法（單引號）', () => {
     @endsection
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -98,7 +98,7 @@ test('應該支援 @section 簡寫語法（雙引號）', () => {
     @section("class", "text-red-500")
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -134,7 +134,7 @@ test('應該支援多個簡寫 @section', () => {
     @endsection
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -174,7 +174,7 @@ test('應該支援簡寫和完整語法混用', () => {
     @endsection
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -205,7 +205,7 @@ test('應該支援包含特殊字元的內容', () => {
     @section('class', 'bg-slate-100/30 hover:bg-slate-200/50')
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });
@@ -234,7 +234,7 @@ test('應該支援空字串內容', () => {
     @section('class', '')
   `;
 
-  const output = plugin.transformIndexHtml(input, {
+  const output = plugin.transformIndexHtml.handler(input, {
     filename: 'test.html',
     server: null
   });

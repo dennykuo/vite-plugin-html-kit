@@ -68,7 +68,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <script src="/js/app.js"></script>
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -104,7 +104,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <link href="/css/second.css" rel="stylesheet">
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -147,7 +147,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <link href="/css/critical.css" rel="stylesheet">
 @endprepend`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -185,7 +185,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <link href="/css/second-prepend.css" rel="stylesheet">
 @endprepend`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -229,7 +229,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <script>console.log('prepend 2');</script>
 @endprepend`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -287,7 +287,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <link href="/css/dashboard.css" rel="stylesheet">
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -337,7 +337,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <script src="/js/analytics.js"></script>
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -368,7 +368,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <h1>Content</h1>
 @endsection`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -428,7 +428,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <div id="charts"></div>
 @endsection`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -484,7 +484,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   <link href="/css/page.css" rel="stylesheet">
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -539,7 +539,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   @endif
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });
@@ -586,7 +586,7 @@ describe('@stack/@push/@prepend 語法測試', () => {
   @endforeach
 @endpush`;
 
-      const output = plugin.transformIndexHtml(input, {
+      const output = plugin.transformIndexHtml.handler(input, {
         filename: 'test.html',
         server: null
       });

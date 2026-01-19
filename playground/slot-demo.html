@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slot 指令示範</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <header class="text-center mb-10">
+      <h1 class="text-3xl font-bold text-gray-900">&#64;slot 指令示範</h1>
+      <p class="text-gray-600 mt-2">展示如何使用 slot 將內容傳遞給組件</p>
+    </header>
+
+    <div class="grid md:grid-cols-2 gap-6">
+
+      <!-- 範例 1: 完整的 slot（自訂所有內容） -->
+      <div>
+        <h2 class="text-lg font-semibold mb-3 text-gray-700">範例 1: 完整自訂</h2>
+        <include src="simple-card.html">
+          @slot('title')
+            🎉 特別活動
+          @endslot
+
+          @slot('content')
+            <p class="text-gray-700 mb-2">這是一個完全自訂的卡片！</p>
+            <ul class="list-disc list-inside text-sm text-gray-600">
+              <li>自訂標題</li>
+              <li>自訂內容</li>
+              <li>自訂頁尾</li>
+            </ul>
+          @endslot
+
+          @slot('footer')
+            <button class="bg-blue-500 text-white px-4 py-1 rounded text-xs hover:bg-blue-600">
+              立即查看
+            </button>
+          @endslot
+        </include>
+      </div>
+
+      <!-- 範例 2: 部分 slot（只自訂部分內容） -->
+      <div>
+        <h2 class="text-lg font-semibold mb-3 text-gray-700">範例 2: 部分自訂</h2>
+        <include src="simple-card.html">
+          @slot('title')
+            📝 重要通知
+          @endslot
+
+          @slot('content')
+            <p class="text-gray-700">
+              這張卡片只自訂了標題和內容，<br>
+              頁尾使用預設值。
+            </p>
+          @endslot
+
+          <!-- footer 沒有定義，會使用預設值 -->
+        </include>
+      </div>
+
+      <!-- 範例 3: 完全使用預設值 -->
+      <div>
+        <h2 class="text-lg font-semibold mb-3 text-gray-700">範例 3: 全部預設</h2>
+        <include src="simple-card.html" />
+      </div>
+
+      <!-- 範例 4: 複雜內容的 slot -->
+      <div>
+        <h2 class="text-lg font-semibold mb-3 text-gray-700">範例 4: 複雜內容</h2>
+        <include src="simple-card.html">
+          @slot('title')
+            ⭐ 產品功能
+          @endslot
+
+          @slot('content')
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="text-green-500">✓</span>
+                <span>響應式設計</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-green-500">✓</span>
+                <span>模組化架構</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-green-500">✓</span>
+                <span>易於擴展</span>
+              </div>
+            </div>
+          @endslot
+
+          @slot('footer')
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-500">更新於 2026-01-18</span>
+              <a href="#" class="text-blue-600 text-xs hover:underline">查看詳情 →</a>
+            </div>
+          @endslot
+        </include>
+      </div>
+
+    </div>
+
+    <!-- 說明區域 -->
+    <div class="mt-10 bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">💡 工作原理</h2>
+
+      <div class="space-y-4 text-sm text-gray-700">
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-2">1️⃣ 父組件定義 slot 接收位置</h3>
+          <pre class="bg-gray-50 p-3 rounded border text-xs overflow-x-auto"><code>&lt;div class="card"&gt;
+  &lt;h3&gt;&#64;slot('title', '預設標題')&lt;/h3&gt;
+  &lt;div&gt;&#64;slot('content', '預設內容')&lt;/div&gt;
+  &lt;div&gt;&#64;slot('footer', '預設頁尾')&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-2">2️⃣ 子頁面使用 slot 傳遞內容</h3>
+          <pre class="bg-gray-50 p-3 rounded border text-xs overflow-x-auto"><code>&lt;include src="card.html"&gt;
+  &#64;slot('title')
+    自訂標題
+  &#64;endslot
+
+  &#64;slot('content')
+    自訂內容
+  &#64;endslot
+&lt;/include&gt;</code></pre>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-2">3️⃣ 重點說明</h3>
+          <ul class="list-disc list-inside space-y-1 ml-2">
+            <li><strong>父組件</strong>：定義 <code class="bg-gray-100 px-1 rounded">&#64;slot('name', 'default')</code> 來接收內容</li>
+            <li><strong>子頁面</strong>：使用 <code class="bg-gray-100 px-1 rounded">&#64;slot('name')...&#64;endslot</code> 傳遞內容</li>
+            <li><strong>預設值</strong>：如果沒有傳遞內容，會顯示父組件定義的預設值</li>
+            <li><strong>可選性</strong>：可以只自訂部分 slot，其他使用預設值</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

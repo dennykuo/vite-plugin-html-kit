@@ -56,7 +56,7 @@ describe('Include 功能測試', () => {
         <main>Content</main>
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<header><h1>My Site</h1></header>');
       expect(result).toContain('<main>Content</main>');
@@ -85,7 +85,7 @@ describe('Include 功能測試', () => {
         <include src="footer.html" />
       `;
 
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<header>Header</header>');
       expect(result).toContain('<footer>Footer</footer>');
@@ -114,7 +114,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="header.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該包含兩層的內容
       expect(result).toContain('<header>');
@@ -149,7 +149,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="header.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該包含三層的內容
       expect(result).toContain('<header>');
@@ -175,7 +175,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="greeting.html" name="Alice" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>Hello, Alice!</p>');
     });
@@ -193,7 +193,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="card.html" className="card-primary" title="My Card" description="This is a card" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('class="card-primary"');
       expect(result).toContain('<h2>My Card</h2>');
@@ -213,7 +213,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="button.html" dataId="123" ariaLabel="Click me" text="Submit" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('data-id="123"');
       expect(result).toContain('aria-label="Click me"');
@@ -236,7 +236,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="message.html" message="Local Message" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       // 應該使用局部變數的值
       expect(result).toContain('<p>Local Message</p>');
@@ -262,7 +262,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="user-info.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>My Website - John</p>');
     });
@@ -283,7 +283,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="mixed.html" local="Local Value" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>Global Value and Local Value</p>');
     });
@@ -303,7 +303,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="conditional.html" show="true" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>Visible</p>');
     });
@@ -324,7 +324,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="list.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<li>A</li>');
       expect(result).toContain('<li>B</li>');
@@ -349,7 +349,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="components/button.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<button>Click</button>');
     });
@@ -370,7 +370,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="ui/forms/input.html" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<input type="text" />');
     });
@@ -390,7 +390,7 @@ describe('Include 功能測試', () => {
       plugin.configResolved({ root: process.cwd() });
 
       const html = '<include src="lodash-test.html" text="hello world" />';
-      const result = plugin.transformIndexHtml(html);
+      const result = plugin.transformIndexHtml.handler(html);
 
       expect(result).toContain('<p>HELLO WORLD</p>');
     });
