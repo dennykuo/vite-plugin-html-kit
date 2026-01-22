@@ -15,6 +15,7 @@ A powerful Vite plugin for HTML templating, including partials, layouts, and dat
 - 🛠 **Blade-like Syntax**: Clean and readable control structures (`@if`, `@foreach`, `@switch`).
 - 📐 **Layout Inheritance**: Laravel Blade style layouts with `@extends`, `@section`, and `@yield`.
 - 🎰 **Component Slots**: Pass content blocks to components using `@slot`.
+- 📝 **Markdown Support**: Write content in Markdown with `@markdown` blocks or import `.md` files directly.
 - ⚡ **Vite Integration**: Seamless integration with Vite's dev server and build process. Uses `order: 'pre'` to ensure template-inserted resources are properly processed by Vite.
 - 🎨 **Zero Config Required**: Works out of the box, but highly customizable.
 

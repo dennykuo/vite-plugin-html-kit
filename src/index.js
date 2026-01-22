@@ -3,6 +3,8 @@ import path from 'path';
 import lodash from 'lodash';
 import { LRUCache } from 'lru-cache';
 import crypto from 'crypto';
+import MarkdownIt from 'markdown-it';
+import matter from 'gray-matter';
 import {
   ErrorCodes,
   PluginError,
@@ -251,6 +253,40 @@ const REGEX = {
 
   /** 匹配 @verbatim...@endverbatim 區塊 */
   VERBATIM: /@verbatim([\s\S]*?)@endverbatim/gi,
+
+  // ====================================================================
+  // 📌 Markdown 區塊 (Markdown Blocks)
+  // ====================================================================
+  // 將 Markdown 語法轉換為 HTML
+  //
+  // 用途：
+  // - 在 HTML 模板中嵌入 Markdown 內容
+  // - 快速撰寫文檔或內容頁面
+  // - 支援所有標準 Markdown 語法
+  //
+  // 語法：
+  // @markdown
+  //   # 標題
+  //   **粗體** 和 *斜體*
+  //   - 列表項目
+  // @endmarkdown
+  //
+  // 範例：
+  // <div class="content">
+  //   @markdown
+  //   ## 功能特色
+  //   - 支援 **Markdown** 語法
+  //   - 自動轉換為 HTML
+  //   @endmarkdown
+  // </div>
+  //
+  // 正則說明：
+  // - @markdown : 匹配開始標記
+  // - ([\s\S]*?) : 非貪婪匹配 Markdown 內容（包括換行）
+  // - @endmarkdown : 匹配結束標記
+
+  /** 匹配 @markdown...@endmarkdown 區塊 */
+  MARKDOWN: /@markdown([\s\S]*?)@endmarkdown/gi,
 
   // ====================================================================
   // 📌 JSON 輸出 (JSON Output)
@@ -906,6 +942,7 @@ const evaluateAttributeExpressions = (attrs, dataContext, compilerOptions) => {
  *   - 絕對路徑：使用 path.resolve() 或 path.join(__dirname, ...) 指定絕對路徑
  * @param {Object} [options.data={}] - 全域資料物件，所有模板都可以存取
  * @param {Object} [options.compilerOptions={}] - Lodash template 編譯器選項
+ * @param {boolean} [options.markdown=true] - 啟用 Markdown 支援（@markdown 區塊和 .md 檔案引入）
  * @returns {import('vite').Plugin} Vite 插件物件
  *
  * @example
@@ -928,7 +965,8 @@ export default function vitePluginHtmlKit(options = {}) {
   const {
     partialsDir = 'partials',
     data = {},
-    compilerOptions = {}
+    compilerOptions = {},
+    markdown = true  // 預設啟用 Markdown 支援
   } = options;
 
   // 儲存 Vite 的解析後配置
@@ -945,6 +983,14 @@ export default function vitePluginHtmlKit(options = {}) {
     interpolate: /{{([\s\S]+?)}}/g,  // 自訂插值語法: {{ ... }}
     ...compilerOptions
   };
+
+  // 初始化 Markdown 處理器
+  // 支援 @markdown...@endmarkdown 區塊和 .md 檔案引入
+  const md = markdown ? new MarkdownIt({
+    html: true,        // 允許 HTML 標籤
+    linkify: true,     // 自動轉換 URL 為連結
+    typographer: true  // 智慧引號和其他排版優化
+  }) : null;
 
   /**
    * 轉換 Blade 風格的邏輯標籤為 Lodash Template 語法
@@ -1078,6 +1124,67 @@ export default function vitePluginHtmlKit(options = {}) {
       // 預設使用緊湊格式
       return `{{ JSON.stringify(${expression}) }}`;
     });
+
+    // ========================================
+    // 步驟 1.7: 轉換 @markdown 區塊為 HTML
+    // ========================================
+    // 將 @markdown...@endmarkdown 區塊內的 Markdown 語法轉換為 HTML
+    //
+    // 轉換流程：
+    // 1. 提取 @markdown 區塊內容
+    // 2. 使用 markdown-it 將 Markdown 轉換為 HTML
+    // 3. 替換原始區塊為轉換後的 HTML
+    //
+    // 為什麼在這裡處理：
+    // - 需要在 Blade 註釋和 @json 之後
+    // - 必須在條件判斷（@if）和迴圈（@foreach）之前
+    // - Markdown 內容可能包含 Blade 語法，需要後續處理
+    //
+    // 範例轉換：
+    // @markdown
+    //   # 標題
+    //   **粗體** 文字
+    // @endmarkdown
+    // ->
+    // <h1>標題</h1>
+    // <p><strong>粗體</strong> 文字</p>
+    //
+    // 注意：
+    // - Markdown 轉換後的 HTML 仍可包含 Blade 語法（如 {{ var }}）
+    // - 這些語法會在後續的 Lodash Template 編譯時處理
+    if (md) {
+      processed = processed.replace(REGEX.MARKDOWN, (match, content) => {
+        // 移除前後空白
+        const trimmedContent = content.trim();
+
+        // 移除共同的前導空白（dedent）
+        // 這樣可以避免 Markdown 將縮進的內容解析為程式碼區塊
+        const lines = trimmedContent.split('\n');
+        const minIndent = lines
+          .filter(line => line.trim().length > 0)
+          .reduce((min, line) => {
+            const match = line.match(/^(\s*)/);
+            const indent = match ? match[1].length : 0;
+            return Math.min(min, indent);
+          }, Infinity);
+
+        const dedentedContent = lines
+          .map(line => line.slice(minIndent))
+          .join('\n');
+
+        // 使用 markdown-it 轉換為 HTML
+        try {
+          return md.render(dedentedContent);
+        } catch (error) {
+          // Markdown 解析失敗：返回錯誤訊息
+          createAndLogError(ErrorCodes.TEMPLATE_COMPILE_ERROR, ['markdown block'], {
+            filename: 'inline markdown',
+            originalError: error
+          });
+          return `<!-- Markdown 解析錯誤: ${error.message} -->`;
+        }
+      });
+    }
 
     // ========================================
     // 步驟 1.8: 轉換 @include 為 <include> 標籤
@@ -2107,6 +2214,30 @@ export default function vitePluginHtmlKit(options = {}) {
             let content = fs.readFileSync(filePath, 'utf-8');
 
             // ----------------------------------------
+            // 步驟 3.3.1: 處理 Markdown 檔案
+            // ----------------------------------------
+            // 如果引入的是 .md 檔案，自動轉換為 HTML
+            // 支援 frontmatter（可選）
+            let frontmatterData = {};
+            if (md && filePath.endsWith('.md')) {
+              try {
+                // 使用 gray-matter 解析 frontmatter
+                const parsed = matter(content);
+                frontmatterData = parsed.data;
+                const markdownContent = parsed.content;
+
+                // 將 Markdown 轉換為 HTML
+                content = md.render(markdownContent);
+              } catch (error) {
+                createAndLogError(ErrorCodes.TEMPLATE_COMPILE_ERROR, [src], {
+                  filename: filePath,
+                  originalError: error
+                });
+                return `<!-- Markdown 檔案解析錯誤: ${error.message} -->`;
+              }
+            }
+
+            // ----------------------------------------
             // 步驟 3.3.5: 處理 @once 區塊（防止重複輸出）
             // ----------------------------------------
             // @once 區塊用於確保某段代碼只輸出一次，即使 partial 被多次 include
@@ -2190,8 +2321,9 @@ export default function vitePluginHtmlKit(options = {}) {
             // 合併順序（後者覆蓋前者）：
             // 1. Lodash 工具函式（_）
             // 2. 全域資料上下文
-            // 3. 局部變數（傳入的屬性）
-            const currentData = { _: lodash, ...dataContext, ...locals };
+            // 3. Markdown frontmatter 資料（如果是 .md 檔案）
+            // 4. 局部變數（傳入的屬性）
+            const currentData = { _: lodash, ...dataContext, ...frontmatterData, ...locals };
 
             // ----------------------------------------
             // 步驟 3.9: 遞迴處理 Partial 內的 Include

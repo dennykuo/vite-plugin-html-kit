@@ -82,6 +82,47 @@ export interface VitePluginHtmlKitOptions {
      */
     sourceURL?: string;
   };
+
+  /**
+   * 啟用 Markdown 支援
+   *
+   * 啟用後支援：
+   * - @markdown...@endmarkdown 區塊語法
+   * - 引入 .md 檔案（自動轉換為 HTML）
+   * - Markdown frontmatter 解析
+   *
+   * @default true
+   *
+   * @example
+   * 使用 @markdown 區塊
+   * ```html
+   * <div class="content">
+   *   @markdown
+   *   # 標題
+   *   **粗體** 和 *斜體*
+   *   - 列表項目
+   *   @endmarkdown
+   * </div>
+   * ```
+   *
+   * @example
+   * 引入 Markdown 檔案
+   * ```html
+   * <include src="content/article.md" />
+   * ```
+   *
+   * @example
+   * 使用 frontmatter
+   * ```markdown
+   * ---
+   * title: 文章標題
+   * author: 作者名稱
+   * ---
+   * # {{ title }}
+   * 作者：{{ author }}
+   * ```
+   */
+  markdown?: boolean;
 }
 
 /**
