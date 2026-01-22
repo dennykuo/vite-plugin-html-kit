@@ -182,6 +182,264 @@ const hash = (content) => {
 };
 
 /**
+ * 生成作用域樣式的唯一識別碼 (Scope ID)
+ *
+ * 為每個使用 scoped styles 的組件生成唯一的 data 屬性名稱。
+ * 使用 MD5 hash 確保：
+ * - 相同的文件路徑和內容生成相同的 scopeId（可預測）
+ * - 不同的文件或內容生成不同的 scopeId（避免衝突）
+ *
+ * @param {string} filePath - 組件文件的路徑（用於唯一性）
+ * @param {string} content - CSS 內容（用於內容變更檢測）
+ * @returns {string} 格式為 'v-xxxxxxxx' 的 scopeId
+ *
+ * @example
+ * generateScopeId('/partials/card.html', '.card { ... }')
+ * // 返回: 'v-a1b2c3d4'
+ */
+const generateScopeId = (filePath, content) => {
+  const hashValue = crypto
+    .createHash('md5')
+    .update(filePath + content)
+    .digest('hex')
+    .substring(0, 8);
+  return `v-${hashValue}`;
+};
+
+/**
+ * 轉換 CSS 選擇器，添加作用域屬性
+ *
+ * 為每個 CSS 選擇器添加屬性選擇器（如 [data-v-xxx]），實現樣式隔離。
+ *
+ * 支援的選擇器：
+ * - 類選擇器：.class -> .class[data-v-xxx]
+ * - ID 選擇器：#id -> #id[data-v-xxx]
+ * - 元素選擇器：div -> div[data-v-xxx]
+ * - 組合選擇器：.parent .child -> .parent .child[data-v-xxx]
+ * - 偽類：.class:hover -> .class[data-v-xxx]:hover
+ * - 偽元素：.class::before -> .class[data-v-xxx]::before
+ *
+ * 技術細節：
+ * - 使用正則表達式匹配 CSS 規則
+ * - 處理多選擇器（逗號分隔）
+ * - 保留 @media, @keyframes 等 at-rules
+ *
+ * @param {string} css - 原始 CSS 內容
+ * @param {string} scopeId - 作用域識別碼（如 'v-abc123'）
+ * @returns {string} 轉換後的 CSS
+ *
+ * @example
+ * transformScopedCSS('.card { color: red; }', 'v-abc123')
+ * // 返回: '.card[data-v-abc123] { color: red; }'
+ *
+ * @example
+ * transformScopedCSS('.card:hover { opacity: 0.8; }', 'v-abc123')
+ * // 返回: '.card[data-v-abc123]:hover { opacity: 0.8; }'
+ */
+const transformScopedCSS = (css, scopeId) => {
+  // 匹配 CSS 規則：selector { declarations }
+  const ruleRegex = /([^{]+)\{([^}]*)\}/g;
+
+  return css.replace(ruleRegex, (match, selectorPart, bodyPart) => {
+    const selectors = selectorPart.trim();
+
+    // 跳過 @media, @keyframes, @font-face 等 at-rules
+    if (selectors.startsWith('@')) {
+      return match;
+    }
+
+    // 轉換選擇器
+    const transformedSelectors = transformSelectors(selectors, scopeId);
+
+    return `${transformedSelectors}{${bodyPart}}`;
+  });
+};
+
+/**
+ * 轉換多個選擇器（逗號分隔）
+ *
+ * @param {string} selectors - 選擇器字串（可能包含多個，用逗號分隔）
+ * @param {string} scopeId - 作用域識別碼
+ * @returns {string} 轉換後的選擇器
+ *
+ * @example
+ * transformSelectors('.card, .panel', 'v-abc')
+ * // 返回: '.card[data-v-abc], .panel[data-v-abc]'
+ */
+const transformSelectors = (selectors, scopeId) => {
+  return selectors
+    .split(',')
+    .map(selector => transformSelector(selector.trim(), scopeId))
+    .join(', ');
+};
+
+/**
+ * 轉換單個選擇器
+ *
+ * 處理邏輯：
+ * 1. 識別選擇器的主體部分（在偽類/偽元素之前）
+ * 2. 在主體部分後添加屬性選擇器 [data-v-xxx]
+ * 3. 保留偽類和偽元素
+ *
+ * @param {string} selector - 單個選擇器
+ * @param {string} scopeId - 作用域識別碼
+ * @returns {string} 轉換後的選擇器
+ *
+ * @example
+ * transformSelector('.card', 'v-abc')
+ * // 返回: '.card[data-v-abc]'
+ *
+ * @example
+ * transformSelector('.card:hover', 'v-abc')
+ * // 返回: '.card[data-v-abc]:hover'
+ *
+ * @example
+ * transformSelector('.card::before', 'v-abc')
+ * // 返回: '.card[data-v-abc]::before'
+ */
+const transformSelector = (selector, scopeId) => {
+  // 處理空選擇器
+  if (!selector) {
+    return selector;
+  }
+
+  // 處理組合選擇器（只為最後一個選擇器添加屬性）
+  // 例如：.parent .child -> .parent .child[data-v-xxx]
+  const combinatorMatch = selector.match(/^(.+[\s>+~])(.+)$/);
+  if (combinatorMatch) {
+    const [, combinator, lastSelector] = combinatorMatch;
+    return combinator + transformSelector(lastSelector, scopeId);
+  }
+
+  // 分離偽類和偽元素
+  // 匹配：base:pseudo 或 base::pseudo-element
+  const pseudoMatch = selector.match(/^([^:]+)(::?[^:\s]+)?$/);
+  if (pseudoMatch) {
+    const [, base, pseudo = ''] = pseudoMatch;
+    return `${base}[data-${scopeId}]${pseudo}`;
+  }
+
+  // 默認情況：直接添加屬性選擇器
+  return `${selector}[data-${scopeId}]`;
+};
+
+/**
+ * 為 HTML 元素添加作用域屬性
+ *
+ * 為組件中的所有 HTML 元素添加 data-v-xxx 屬性，配合 scoped CSS 使用。
+ *
+ * 處理的標籤類型：
+ * - 普通開始標籤：<div>, <div class="card">
+ * - 自閉合標籤：<img />, <br />
+ *
+ * 跳過的標籤：
+ * - <style> 和 <script> 標籤
+ * - 已經有 data-v-xxx 屬性的標籤
+ *
+ * @param {string} html - HTML 內容
+ * @param {string} scopeId - 作用域識別碼（如 'v-abc123'）
+ * @returns {string} 添加了屬性的 HTML
+ *
+ * @example
+ * addScopeIdToElements('<div class="card">Hello</div>', 'v-abc')
+ * // 返回: '<div class="card" data-v-abc>Hello</div>'
+ *
+ * @example
+ * addScopeIdToElements('<img src="..." />', 'v-abc')
+ * // 返回: '<img src="..." data-v-abc />'
+ */
+const addScopeIdToElements = (html, scopeId) => {
+  // 匹配所有開始標籤：<tag attrs>
+  // 支援：
+  // - 普通標籤：<div class="...">
+  // - 自閉合標籤：<img ... />
+  // - 無屬性標籤：<div>
+  const openTagRegex = /<([a-zA-Z][\w:-]*)((?:\s+[^>]*?)?)(\/?)>/g;
+
+  return html.replace(openTagRegex, (match, tagName, attrs, selfClosing) => {
+    // 跳過 style 和 script 標籤
+    if (['style', 'script'].includes(tagName.toLowerCase())) {
+      return match;
+    }
+
+    // 檢查是否已經有這個屬性（避免重複添加）
+    const dataAttr = `data-${scopeId}`;
+    if (attrs && attrs.includes(dataAttr)) {
+      return match;
+    }
+
+    // 添加屬性
+    // 格式：<tag attrs data-v-xxx> 或 <tag attrs data-v-xxx />
+    // 移除 attrs 的前後空白，確保只有一個空格
+    const trimmedAttrs = attrs.trim();
+    const newAttrs = trimmedAttrs ? ` ${trimmedAttrs} ${dataAttr}` : ` ${dataAttr}`;
+    // 自閉合標籤需要在 /> 前加空格
+    const closing = selfClosing ? ` ${selfClosing}>` : '>';
+    return `<${tagName}${newAttrs}${closing}`;
+  });
+};
+
+/**
+ * 提取並處理 scoped styles
+ *
+ * 從 HTML 中提取所有 <style scoped> 標籤，轉換 CSS，並為 HTML 元素添加屬性。
+ *
+ * 處理流程：
+ * 1. 提取所有 <style scoped> 標籤
+ * 2. 生成唯一的 scopeId
+ * 3. 轉換 CSS 選擇器
+ * 4. 為 HTML 元素添加 data 屬性
+ * 5. 將轉換後的 <style> 重新插入
+ *
+ * @param {string} html - 包含 scoped styles 的 HTML
+ * @param {string} filePath - 文件路徑（用於生成 scopeId）
+ * @returns {string} 處理後的 HTML
+ *
+ * @example
+ * // 輸入：
+ * // <div class="card">Hello</div>
+ * // <style scoped>.card { color: red; }</style>
+ * //
+ * // 輸出：
+ * // <div class="card" data-v-abc123>Hello</div>
+ * // <style>.card[data-v-abc123] { color: red; }</style>
+ */
+const processScopedStyles = (html, filePath) => {
+  // 檢查是否有 scoped styles
+  if (!html.includes('<style scoped>')) {
+    return html;
+  }
+
+  // 提取所有 scoped style 標籤
+  const styles = [];
+  let htmlWithoutStyles = html.replace(REGEX.SCOPED_STYLE, (match, cssContent) => {
+    styles.push(cssContent);
+    return ''; // 暫時移除 style 標籤
+  });
+
+  // 如果沒有找到任何 scoped styles，直接返回原始 HTML
+  if (styles.length === 0) {
+    return html;
+  }
+
+  // 生成 scopeId
+  const combinedStyles = styles.join('\n');
+  const scopeId = generateScopeId(filePath, combinedStyles);
+
+  // 轉換 CSS
+  const transformedStyles = styles
+    .map(css => transformScopedCSS(css, scopeId))
+    .join('\n');
+
+  // 為 HTML 元素添加 data 屬性
+  htmlWithoutStyles = addScopeIdToElements(htmlWithoutStyles, scopeId);
+
+  // 將轉換後的樣式重新插入（作為普通 <style> 標籤）
+  // 放在 HTML 的末尾
+  return `${htmlWithoutStyles}\n<style>${transformedStyles}</style>`;
+};
+
+/**
  * 預編譯正則表達式模式 (效能優化)
  *
  * 為了提升效能，所有正則表達式都在模組載入時預先編譯。
@@ -729,7 +987,39 @@ const REGEX = {
    * 匹配 HTML 屬性 key="value" 或 key='value'
    * 支援連字符屬性名 (e.g., data-id, aria-label)
    */
-  ATTRS: /(\w+(?:-\w+)*)=(['"])(.*?)\2/g
+  ATTRS: /(\w+(?:-\w+)*)=(['"])(.*?)\2/g,
+
+  // ====================================================================
+  // 📌 作用域樣式 (Scoped Styles)
+  // ====================================================================
+  // 為組件提供樣式隔離，防止樣式洩漏
+  //
+  // 用途：
+  // - 組件級別的樣式隔離（主要用於 partials）
+  // - 自動添加唯一的 data 屬性
+  // - 防止樣式衝突
+  //
+  // 語法：
+  // <style scoped>
+  //   .card { border: 1px solid #ccc; }
+  // </style>
+  //
+  // 轉換後：
+  // <style>
+  //   .card[data-v-abc123] { border: 1px solid #ccc; }
+  // </style>
+  // <div class="card" data-v-abc123>...</div>
+  //
+  // 正則說明：
+  // - <style\s+scoped\s*> : 匹配開始標籤 <style scoped>
+  // - ([\s\S]*?) : 非貪婪匹配 CSS 內容（包括換行）
+  // - <\/style> : 匹配結束標籤 </style>
+
+  /**
+   * 匹配 <style scoped>...</style> 標籤
+   * 捕獲群組: $1=CSS內容
+   */
+  SCOPED_STYLE: /<style\s+scoped\s*>([\s\S]*?)<\/style>/gi
 };
 
 /**
@@ -2256,6 +2546,21 @@ export default function vitePluginHtmlKit(options = {}) {
               onceBlocks.add(contentHash);
               return onceContent;
             });
+
+            // ----------------------------------------
+            // 步驟 3.3.6: 處理作用域樣式 (Scoped Styles)
+            // ----------------------------------------
+            // 如果 partial 包含 <style scoped> 標籤，自動進行樣式隔離
+            // 範例：
+            //   <div class="card">{{ title }}</div>
+            //   <style scoped>.card { border: 1px solid #ccc; }</style>
+            //
+            // 轉換為：
+            //   <div class="card" data-v-abc123>{{ title }}</div>
+            //   <style>.card[data-v-abc123] { border: 1px solid #ccc; }</style>
+            //
+            // 這確保組件的樣式不會洩漏到其他組件
+            content = processScopedStyles(content, filePath);
 
             // ----------------------------------------
             // 步驟 3.4: 解析 Slot 內容

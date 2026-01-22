@@ -274,6 +274,130 @@ Pass content blocks to reusable components.
 @endforeach
 ```
 
+### 5. Scoped Styles (`<style scoped>`)
+
+**Problem:** Without scoped styles, CSS can leak across components, causing unintended style conflicts.
+
+**Solution:** Use `<style scoped>` to automatically isolate component styles, similar to Vue.js.
+
+#### How it works
+
+The plugin automatically:
+1. Extracts `<style scoped>` tags from components
+2. Generates a unique scope ID (e.g., `data-v-abc123`)
+3. Adds attribute selectors to CSS rules (e.g., `.card` → `.card[data-v-abc123]`)
+4. Adds the scope ID attribute to all HTML elements in the component
+
+#### Basic Example
+
+```html
+<!-- partials/card.html -->
+<div class="card">
+  <h2 class="title">{{ title }}</h2>
+  <p class="content">{{ content }}</p>
+</div>
+
+<style scoped>
+  .card {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .content {
+    color: #666;
+  }
+</style>
+```
+
+**Transformed output:**
+
+```html
+<div class="card" data-v-a1b2c3d4>
+  <h2 class="title" data-v-a1b2c3d4>My Card Title</h2>
+  <p class="content" data-v-a1b2c3d4>Card content here</p>
+</div>
+
+<style>
+  .card[data-v-a1b2c3d4] {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .title[data-v-a1b2c3d4] {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .content[data-v-a1b2c3d4] {
+    color: #666;
+  }
+</style>
+```
+
+#### Supported CSS Selectors
+
+- **Class selectors:** `.class` → `.class[data-v-xxx]`
+- **ID selectors:** `#id` → `#id[data-v-xxx]`
+- **Element selectors:** `div` → `div[data-v-xxx]`
+- **Descendant selectors:** `.parent .child` → `.parent .child[data-v-xxx]`
+- **Pseudo-classes:** `.link:hover` → `.link[data-v-xxx]:hover`
+- **Pseudo-elements:** `.box::before` → `.box[data-v-xxx]::before`
+
+#### Multiple Components with Isolated Styles
+
+```html
+<!-- partials/button.html -->
+<button class="btn">{{ label }}</button>
+
+<style scoped>
+  .btn {
+    background: blue;
+    color: white;
+  }
+</style>
+
+<!-- partials/card.html -->
+<div class="btn">This is a card button</div>
+
+<style scoped>
+  .btn {
+    background: red; /* Won't conflict with button.html */
+    border: 1px solid #ccc;
+  }
+</style>
+```
+
+Each component gets a unique scope ID, so the `.btn` styles won't conflict:
+- `button.html`: `.btn[data-v-abc123]`
+- `card.html`: `.btn[data-v-def456]`
+
+#### Best Practices
+
+1. **Use scoped styles for components:** Apply `<style scoped>` to reusable partials to prevent style leakage.
+2. **Global styles in main files:** Use regular `<style>` tags (without `scoped`) in your main HTML files for global styles.
+3. **Combine with @stack for global CSS:**
+   ```html
+   <!-- Use @push for global stylesheets -->
+   @push('styles')
+     <link rel="stylesheet" href="/global.css">
+   @endpush
+
+   <!-- Use <style scoped> for component styles -->
+   <div class="component">...</div>
+   <style scoped>
+     .component { ... }
+   </style>
+   ```
+
 ## Configuration Reference
 
 | Option | Type | Default | Description |
