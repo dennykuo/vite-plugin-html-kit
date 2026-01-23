@@ -6,13 +6,14 @@
 
 A powerful Vite plugin for HTML templating, including partials, layouts, and data injection. It supports **Blade-like logic** (`@if`, `@foreach`, `@switch`) and standard **Lodash templates** for maximum flexibility.
 
-> 🚀 **171 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
+> 🚀 **181 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
 
 ## Features
 
 - 🧩 **Partials**: Easily organize your HTML into reusable components (`<include src="..." />`).
 - 💉 **Data Injection**: Pass data to partials via attributes or global configuration.
 - 🛠 **Blade-like Syntax**: Clean and readable control structures (`@if`, `@foreach`, `@switch`).
+- 🎯 **Conditional Classes**: Dynamic CSS class binding with `@class(['active' => isActive])`.
 - 📐 **Layout Inheritance**: Laravel Blade style layouts with `@extends`, `@section`, and `@yield`.
 - 🎰 **Component Slots**: Pass content blocks to components using `@slot`.
 - 🔡 **Escape Syntax**: Use `@@` to output literal `@` symbol (e.g., `@@if` → `@if`).
@@ -154,6 +155,26 @@ Supports both "Blade style" and "JS style" syntax.
     <span class="text-gray-500">Pending...</span>
 @endswitch
 ```
+
+#### Conditional Classes (`@class`)
+
+Dynamically generate CSS class names based on conditions.
+
+```html
+<div @class([
+  'btn',
+  'btn-primary' => isPrimary,
+  'btn-disabled' => isDisabled
+])>
+  Button
+</div>
+<!-- If isPrimary=true, isDisabled=false: <div class="btn btn-primary"> -->
+```
+
+**Syntax options:**
+- `'class-name'` - Always included
+- `'class-name' => condition` - Included when condition is true (PHP arrow syntax)
+- `'class-name': condition` - Included when condition is true (JS colon syntax)
 
 ### 4. Layout Inheritance & Slots
 
@@ -453,7 +474,7 @@ export default defineConfig({
 
 | Metric | Value |
 | :--- | :--- |
-| **Test Coverage** | 171 tests passing (24 test suites) |
+| **Test Coverage** | 181 tests passing (25 test suites) |
 | **Bundle Size** | ~15KB |
 | **Build Speed** | Negligible overhead on Vite builds |
 | **HMR Performance** | Instant hot reload on partial changes |

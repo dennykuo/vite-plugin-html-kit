@@ -285,6 +285,42 @@ const REGEX = {
   JSON: /@json\s*\(([\s\S]*?)(?:\s*,\s*(true|false))?\s*\)/gi,
 
   // ====================================================================
+  // 📌 條件類名 (Conditional Classes)
+  // ====================================================================
+  // 動態生成 CSS 類名
+  //
+  // 用途：
+  // - 根據條件動態決定 HTML 元素的 CSS 類名
+  // - 比手動寫三元運算式更簡潔
+  //
+  // 語法：
+  // @class([
+  //   'static-class',              -> 永遠包含的類名
+  //   'conditional' => expression  -> 當 expression 為 true 時包含
+  // ])
+  //
+  // 範例：
+  // <div @class([
+  //   'btn',
+  //   'btn-primary' => isPrimary,
+  //   'btn-disabled' => isDisabled
+  // ])>
+  //
+  // 當 isPrimary=true, isDisabled=false 時輸出：
+  // <div class="btn btn-primary">
+  //
+  // 正則說明：
+  // - @class\s* : 匹配 @class 和可選空白
+  // - \( : 匹配左括號
+  // - \[ : 匹配左中括號
+  // - ([\s\S]*?) : 非貪婪匹配陣列內容
+  // - \] : 匹配右中括號
+  // - \) : 匹配右括號
+
+  /** 匹配 @class([...]) */
+  CLASS: /@class\s*\(\s*\[([\s\S]*?)\]\s*\)/gi,
+
+  // ====================================================================
   // 📌 變數檢查 (Variable Checks)
   // ====================================================================
   // 檢查變數是否存在或為空
@@ -1096,6 +1132,110 @@ export default function vitePluginHtmlKit(options = {}) {
 
       // 預設使用緊湊格式
       return `{{ JSON.stringify(${expression}) }}`;
+    });
+
+    // ========================================
+    // 步驟 1.7: 轉換 @class() 為 class 屬性
+    // ========================================
+    // 將 @class() 語法轉換為動態的 class 屬性
+    //
+    // 轉換規則：
+    // @class(['btn', 'btn-primary' => isPrimary, 'btn-disabled' => isDisabled])
+    // -> class="{{ (function() { ... })() }}"
+    //
+    // 陣列項目處理：
+    // - 純字串 'class-name' -> 永遠包含
+    // - 'class-name' => condition -> 當 condition 為 true 時包含
+    //
+    // 為什麼使用 {{ }} 而不是 <%= %>：
+    // - plugin 已設置 interpolate: /{{([\s\S]+?)}}/g
+    // - {{ }} 是 interpolate 語法，會輸出內容
+    // - <%= %> 在自定義 interpolate 後不再工作
+    //
+    // 範例：
+    // <div @class(['btn', 'active' => isActive])>
+    // -> <div class="{{ (function() { var __c = []; __c.push('btn'); if(isActive) __c.push('active'); return __c.join(' '); })() }}">
+    processed = processed.replace(REGEX.CLASS, (match, content) => {
+      content = content.trim();
+
+      // 解析陣列項目
+      const items = [];
+      // 暫存當前解析的項目
+      let currentItem = '';
+      let depth = 0; // 括號深度
+      let inString = false;
+      let stringChar = '';
+
+      for (let i = 0; i < content.length; i++) {
+        const char = content[i];
+        const prevChar = i > 0 ? content[i - 1] : '';
+
+        // 處理字串的開始和結束
+        if ((char === '"' || char === "'") && prevChar !== '\\') {
+          if (!inString) {
+            inString = true;
+            stringChar = char;
+          } else if (char === stringChar) {
+            inString = false;
+          }
+        }
+
+        // 追蹤括號深度（只在非字串時）
+        if (!inString) {
+          if (char === '(' || char === '[' || char === '{') {
+            depth++;
+          } else if (char === ')' || char === ']' || char === '}') {
+            depth--;
+          }
+        }
+
+        // 逗號分隔（只在最外層）
+        if (char === ',' && depth === 0 && !inString) {
+          if (currentItem.trim()) {
+            items.push(currentItem.trim());
+          }
+          currentItem = '';
+        } else {
+          currentItem += char;
+        }
+      }
+
+      // 處理最後一個項目
+      if (currentItem.trim()) {
+        items.push(currentItem.trim());
+      }
+
+      // 生成 JavaScript 代碼
+      // 使用 var 而非 const 以避免 strict mode 問題
+      // 使用 __c 作為短變數名避免衝突
+      const jsStatements = ['var __c = [];'];
+
+      for (const item of items) {
+        // 檢查是否有 => 條件（PHP 語法）或 : 條件（JS 語法）
+        // 支援 'class-name' => condition 或 "class-name": condition
+        const phpMatch = item.match(/^(['"])([\s\S]*?)\1\s*=>\s*([\s\S]+)$/);
+        const jsMatch = item.match(/^(['"])([\s\S]*?)\1\s*:\s*([\s\S]+)$/);
+
+        if (phpMatch || jsMatch) {
+          const matchResult = phpMatch || jsMatch;
+          const className = matchResult[2];
+          const condition = matchResult[3].trim();
+          jsStatements.push(`if(${condition}) __c.push('${className}');`);
+        } else {
+          // 純字串類名（永遠包含）
+          // 移除引號
+          const className = item.replace(/^['"]|['"]$/g, '');
+          if (className) {
+            jsStatements.push(`__c.push('${className}');`);
+          }
+        }
+      }
+
+      jsStatements.push("return __c.join(' ');");
+
+      // 返回 class 屬性，使用 IIFE 生成類名
+      // 使用 {{ }} 語法因為 plugin 的 interpolate 設置
+      return `class="{{ (function() { ${jsStatements.join(' ')} })() }}"`;
     });
 
     // ========================================

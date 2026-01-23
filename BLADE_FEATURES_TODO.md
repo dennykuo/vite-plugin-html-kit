@@ -164,7 +164,7 @@
 
 ---
 
-#### 3. @class() - 條件類名
+#### 3. @class() - 條件類名 ✅ 已實現
 **用途：** 動態生成 CSS 類名
 
 **Laravel Blade 語法：**
@@ -177,10 +177,19 @@
 ])>
 ```
 
-**備註：** 可透過 JavaScript 或模板表達式實現
+**本插件語法：**
+```html
+<div @class([
+  'btn',
+  'btn-primary' => isPrimary,
+  'btn-disabled' => isDisabled
+])>
+<!-- 當 isPrimary=true, isDisabled=false 時輸出: <div class="btn btn-primary"> -->
+```
 
-**實現難度：** ⭐⭐⭐ (較高)
-**預期工作量：** 3-4 小時
+**狀態：** ✅ 已實現
+**實現日期：** 2026-01-23
+**測試數量：** 10 個測試案例
 
 ---
 

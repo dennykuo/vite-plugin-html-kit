@@ -76,6 +76,7 @@
         <a href="#once" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@once 防重複</a>
         <a href="#verbatim" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@verbatim</a>
         <a href="#json" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@json 輸出</a>
+        <a href="#class" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@class 條件類名</a>
         <a href="#comments" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">Blade 註釋</a>
         <a href="#at-escape" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@@ 轉義</a>
       </nav>
@@ -654,6 +655,48 @@ export default defineConfig({
 
 &lt;!-- 在 HTML 屬性中使用 --&gt;
 &lt;div data-config='@json(config)'&gt;&lt;/div&gt;</code></pre>
+          </div>
+        </section>
+
+        <!-- @class -->
+        <section id="class" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@class 條件類名</h2>
+          <p class="text-gray-600 mb-4">根據條件動態生成 CSS 類名，比三元運算式更簡潔。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 基本用法 --&gt;
+&lt;div @class([
+  'btn',
+  'btn-primary' =&gt; isPrimary,
+  'btn-disabled' =&gt; isDisabled
+])&gt;
+  按鈕
+&lt;/div&gt;
+&lt;!-- 當 isPrimary=true, isDisabled=false 時輸出: --&gt;
+&lt;!-- &lt;div class="btn btn-primary"&gt;按鈕&lt;/div&gt; --&gt;
+
+&lt;!-- 支援 JS 冒號語法 --&gt;
+&lt;div @class([
+  'card',
+  'card-active': isActive,
+  'card-large': isLarge
+])&gt;
+
+&lt;!-- 支援表達式 --&gt;
+&lt;div @class([
+  'alert',
+  'alert-success' =&gt; status === 'success',
+  'alert-error' =&gt; status === 'error'
+])&gt;</code></pre>
+          </div>
+
+          <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p class="text-sm text-blue-800"><strong>語法說明：</strong></p>
+            <ul class="text-sm text-blue-700 mt-2 space-y-1">
+              <li><code>'class-name'</code> - 永遠包含的類名</li>
+              <li><code>'class-name' =&gt; condition</code> - PHP 箭頭語法（條件為 true 時包含）</li>
+              <li><code>'class-name': condition</code> - JS 冒號語法（條件為 true 時包含）</li>
+            </ul>
           </div>
         </section>
 
