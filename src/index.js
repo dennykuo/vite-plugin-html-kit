@@ -906,6 +906,7 @@ const evaluateAttributeExpressions = (attrs, dataContext, compilerOptions) => {
  *   - 絕對路徑：使用 path.resolve() 或 path.join(__dirname, ...) 指定絕對路徑
  * @param {Object} [options.data={}] - 全域資料物件，所有模板都可以存取
  * @param {Object} [options.compilerOptions={}] - Lodash template 編譯器選項
+ * @param {number} [options.maxIncludeDepth=50] - Include 巢狀的最大深度限制（避免無限遞迴）
  * @returns {import('vite').Plugin} Vite 插件物件
  *
  * @example
@@ -928,7 +929,8 @@ export default function vitePluginHtmlKit(options = {}) {
   const {
     partialsDir = 'partials',
     data = {},
-    compilerOptions = {}
+    compilerOptions = {},
+    maxIncludeDepth = 50
   } = options;
 
   // 儲存 Vite 的解析後配置
@@ -1956,6 +1958,7 @@ export default function vitePluginHtmlKit(options = {}) {
    * @param {string} html - 包含 include 標籤的 HTML 字串
    * @param {Object} dataContext - 當前可用的資料上下文
    * @param {string} [currentFile='root'] - 當前正在處理的檔案名稱（用於循環引用檢測）
+   * @param {number} [depth=0] - 當前遞迴深度（用於深度限制檢查）
    * @returns {string} 處理後的 HTML（include 標籤已被實際內容取代）
    */
   const resolveIncludes = (() => {
@@ -1965,7 +1968,22 @@ export default function vitePluginHtmlKit(options = {}) {
     // 防止無限遞迴：A includes B includes C includes A (❌ 循環)
     const includeStack = [];
 
-    return function resolve(html, dataContext, currentFile = 'root') {
+    return function resolve(html, dataContext, currentFile = 'root', depth = 0) {
+
+      // ========================================
+      // 步驟 0: 深度限制檢查
+      // ========================================
+      // 防止過深的巢狀結構導致效能問題或堆疊溢出
+      // 預設限制為 50 層，可透過 maxIncludeDepth 選項調整
+      if (depth > maxIncludeDepth) {
+        const error = createAndLogError(ErrorCodes.MAX_INCLUDE_DEPTH_EXCEEDED, [depth, maxIncludeDepth, currentFile], {
+          currentFile,
+          depth,
+          maxIncludeDepth,
+          includeStack: [...includeStack]
+        });
+        return error.toHTMLComment();
+      }
 
       // ========================================
       // 步驟 1: 循環引用檢測
@@ -2198,7 +2216,7 @@ export default function vitePluginHtmlKit(options = {}) {
             // ----------------------------------------
             // Partial 內可能還有其他 <include> 標籤，需要遞迴處理
             // 傳入檔案名稱用於循環引用檢測
-            const resolvedContent = resolve(content, currentData, src);
+            const resolvedContent = resolve(content, currentData, src, depth + 1);
 
             // ----------------------------------------
             // 步驟 3.10: 編譯並執行 Lodash Template

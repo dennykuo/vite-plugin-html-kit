@@ -249,3 +249,103 @@ describe('循環引用檢測', () => {
     expect(result).toContain('c.html');
   });
 });
+
+/**
+ * Include 深度限制測試套件
+ *
+ * 驗證插件能正確限制 include 巢狀深度，防止無限遞迴
+ */
+describe('Include 深度限制', () => {
+  const partialsDir = path.join(__dirname, 'fixtures', 'depth-test');
+
+  beforeEach(() => {
+    if (!fs.existsSync(partialsDir)) {
+      fs.mkdirSync(partialsDir, { recursive: true });
+    }
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(partialsDir)) {
+      fs.rmSync(partialsDir, { recursive: true, force: true });
+    }
+  });
+
+  it('應該在超過預設深度限制（50）時顯示錯誤', () => {
+    // 創建 55 層深的檔案鏈
+    for (let i = 0; i < 55; i++) {
+      const nextFile = i < 54 ? `level_${i + 1}.html` : '';
+      const content = nextFile
+        ? `<div>Level ${i}</div><include src="${nextFile}" />`
+        : `<div>Level ${i} - End</div>`;
+      fs.writeFileSync(path.join(partialsDir, `level_${i}.html`), content);
+    }
+
+    const plugin = vitePluginHtmlKit({
+      partialsDir: path.relative(process.cwd(), partialsDir),
+      data: {}
+    });
+
+    plugin.configResolved({ root: process.cwd() });
+
+    const html = '<include src="level_0.html" />';
+    const result = plugin.transformIndexHtml.handler(html);
+
+    // 應該包含深度超限錯誤（E1003 錯誤代碼）
+    expect(result).toContain('E1003');
+    expect(result).toContain('超過最大限制');
+    expect(result).toContain('50');
+  });
+
+  it('應該可以自訂 maxIncludeDepth 選項', () => {
+    // 創建 10 層嵌套
+    for (let i = 0; i < 10; i++) {
+      const nextFile = i < 9 ? `level_${i + 1}.html` : '';
+      const content = nextFile
+        ? `<div>Level ${i}</div><include src="${nextFile}" />`
+        : `<div>Level ${i} - End</div>`;
+      fs.writeFileSync(path.join(partialsDir, `level_${i}.html`), content);
+    }
+
+    const plugin = vitePluginHtmlKit({
+      partialsDir: path.relative(process.cwd(), partialsDir),
+      data: {},
+      maxIncludeDepth: 5
+    });
+
+    plugin.configResolved({ root: process.cwd() });
+
+    const html = '<include src="level_0.html" />';
+    const result = plugin.transformIndexHtml.handler(html);
+
+    // 應該包含深度超限錯誤
+    expect(result).toContain('E1003');
+    expect(result).toContain('超過最大限制');
+  });
+
+  it('深度在限制內應該正常處理', () => {
+    // 創建 5 層嵌套
+    for (let i = 0; i < 5; i++) {
+      const nextFile = i < 4 ? `level_${i + 1}.html` : '';
+      const content = nextFile
+        ? `<div>Level ${i}</div><include src="${nextFile}" />`
+        : `<div>Level ${i} - End</div>`;
+      fs.writeFileSync(path.join(partialsDir, `level_${i}.html`), content);
+    }
+
+    const plugin = vitePluginHtmlKit({
+      partialsDir: path.relative(process.cwd(), partialsDir),
+      data: {},
+      maxIncludeDepth: 10
+    });
+
+    plugin.configResolved({ root: process.cwd() });
+
+    const html = '<include src="level_0.html" />';
+    const result = plugin.transformIndexHtml.handler(html);
+
+    // 不應該有深度超限錯誤
+    expect(result).not.toContain('E1003');
+    expect(result).toContain('Level 0');
+    expect(result).toContain('Level 4 - End');
+  });
+});

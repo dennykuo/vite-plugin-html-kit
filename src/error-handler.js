@@ -25,6 +25,7 @@ export const ErrorCodes = {
   // 循環引用錯誤 (E1xxx)
   CIRCULAR_LAYOUT_REFERENCE: 'E1001',
   CIRCULAR_INCLUDE_REFERENCE: 'E1002',
+  MAX_INCLUDE_DEPTH_EXCEEDED: 'E1003',
 
   // 安全性錯誤 (E2xxx)
   PATH_TRAVERSAL_LAYOUT: 'E2001',
@@ -64,6 +65,12 @@ const ErrorMessages = {
     title: '循環 Include 引用',
     message: (cycle) => `檢測到循環 include 引用: ${cycle}`,
     suggestion: '請檢查 <include> 標籤，確保沒有形成循環依賴。',
+    severity: 'error',
+  },
+  [ErrorCodes.MAX_INCLUDE_DEPTH_EXCEEDED]: {
+    title: 'Include 深度超過限制',
+    message: (depth, maxDepth, file) => `Include 巢狀深度 (${depth}) 超過最大限制 (${maxDepth})，處理檔案: ${file}`,
+    suggestion: '請簡化模板結構，減少巢狀層數。可透過 maxIncludeDepth 選項調整限制（預設 50）。',
     severity: 'error',
   },
   [ErrorCodes.PATH_TRAVERSAL_LAYOUT]: {
