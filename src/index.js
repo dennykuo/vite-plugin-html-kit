@@ -2180,9 +2180,13 @@ export default function vitePluginHtmlKit(options = {}) {
         // 檢查檔案是否存在
         if (!fs.existsSync(layoutFilePath)) {
           const error = createAndLogError(ErrorCodes.LAYOUT_FILE_NOT_FOUND, [layoutPath], {
+            file: currentFile,
+            line: 1,
             layoutPath,
             searchedPath: layoutFilePath,
             partialsDir: absolutePartialsDir,
+            missingPath: layoutPath,
+            searchDir: absolutePartialsDir,
             currentFile
           });
           return error.toHTMLComment();
@@ -2488,9 +2492,13 @@ export default function vitePluginHtmlKit(options = {}) {
             // 一般的 include：檔案不存在時報錯
             if (!fs.existsSync(filePath)) {
               const error = createAndLogError(ErrorCodes.INCLUDE_FILE_NOT_FOUND, [src], {
+                file: currentFile,
+                line: 1,
                 includePath: src,
                 searchedPath: filePath,
                 partialsDir: absolutePartialsDir,
+                missingPath: src,
+                searchDir: absolutePartialsDir,
                 currentFile
               });
               return error.toHTMLComment();

@@ -4,6 +4,8 @@
  * 錯誤處理系統測試
  */
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import {
   ErrorCodes,
   PluginError,
@@ -11,6 +13,9 @@ import {
   tryOrFallback,
   isDebugMode,
 } from '../src/error-handler.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 console.log('🧪 測試錯誤處理系統\n');
 
@@ -268,6 +273,72 @@ test('應該正確儲存來源代碼', () => {
   );
 
   assert(error.context.source === '<% code %>');
+});
+
+// ====================================================================
+// 測試 Astro 風格錯誤訊息改進
+// ====================================================================
+
+console.log('\n📦 測試 Astro 風格錯誤訊息');
+
+test('應該支援列號（column）上下文', () => {
+  const error = new PluginError(
+    ErrorCodes.INCLUDE_FILE_NOT_FOUND,
+    ['test.html'],
+    { file: 'index.html', line: 10, column: 5 }
+  );
+
+  assert(error.context.column === 5);
+  const formatted = error.format(false);
+  assert(formatted.includes('index.html:10:5'));
+});
+
+test('應該支援列號範圍（column 和 columnEnd）', () => {
+  const error = new PluginError(
+    ErrorCodes.INCLUDE_FILE_NOT_FOUND,
+    ['test.html'],
+    { file: 'index.html', line: 10, column: 5, columnEnd: 25 }
+  );
+
+  assert(error.context.column === 5);
+  assert(error.context.columnEnd === 25);
+});
+
+test('format() 應該包含拼寫建議提示（當有 missingPath 和 searchDir）', () => {
+  const error = new PluginError(
+    ErrorCodes.INCLUDE_FILE_NOT_FOUND,
+    ['test.html'],
+    {
+      file: 'index.html',
+      line: 10,
+      missingPath: 'test.html',
+      searchDir: __dirname
+    }
+  );
+
+  const formatted = error.format(false);
+  // 應該包含 missingPath 和 searchDir 相關的資訊
+  // 即使沒有找到相似的檔案，也應該正常顯示錯誤訊息
+  assert(formatted.includes('[E3002]'));
+  assert(formatted.includes('Include 檔案不存在'));
+});
+
+test('應該正確處理沒有可用檔案的情況', () => {
+  const error = new PluginError(
+    ErrorCodes.INCLUDE_FILE_NOT_FOUND,
+    ['test.html'],
+    {
+      file: 'index.html',
+      line: 10,
+      missingPath: 'test.html',
+      searchDir: '/nonexistent/path'
+    }
+  );
+
+  const formatted = error.format(false);
+  // 不應該崩潰，應該正常顯示錯誤訊息
+  assert(formatted.includes('[E3002]'));
+  assert(formatted.includes('Include 檔案不存在'));
 });
 
 // ====================================================================

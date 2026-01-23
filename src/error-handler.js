@@ -4,10 +4,14 @@
  * 提供：
  * - 結構化的錯誤碼系統
  * - 統一的錯誤訊息格式
- * - 詳細的錯誤上下文（檔案、行號等）
+ * - 詳細的錯誤上下文（檔案、行號、列號等）
  * - 錯誤恢復建議
  * - 除錯模式下的詳細資訊
+ * - Astro 風格的錯誤顯示（代碼片段、拼寫建議等）
  */
+
+import fs from 'fs';
+import path from 'path';
 
 // ====================================================================
 // 錯誤碼定義
@@ -153,6 +157,133 @@ const ErrorMessages = {
 };
 
 // ====================================================================
+// 輔助函數
+// ====================================================================
+
+/**
+ * 計算兩個字符串的 Levenshtein 距離（編輯距離）
+ * 用於拼寫建議
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
+function levenshteinDistance(a, b) {
+  const matrix = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+/**
+ * 找到與目標字符串最相似的字符串
+ * @param {string} target - 目標字符串
+ * @param {string[]} candidates - 候選字符串列表
+ * @param {number} maxDistance - 最大距離閾值（預設 3）
+ * @returns {string|null}
+ */
+function findSimilarString(target, candidates, maxDistance = 3) {
+  if (!candidates || candidates.length === 0) return null;
+
+  let bestMatch = null;
+  let bestDistance = Infinity;
+
+  for (const candidate of candidates) {
+    const distance = levenshteinDistance(target.toLowerCase(), candidate.toLowerCase());
+    if (distance < bestDistance && distance <= maxDistance) {
+      bestDistance = distance;
+      bestMatch = candidate;
+    }
+  }
+
+  return bestMatch;
+}
+
+/**
+ * 讀取文件並提取指定行周圍的代碼片段
+ * @param {string} filePath - 文件路徑
+ * @param {number} line - 行號（1-based）
+ * @param {number} [column] - 列號（1-based）
+ * @param {number} [columnEnd] - 結束列號（1-based）
+ * @param {number} [context=2] - 上下文行數
+ * @returns {string|null}
+ */
+function extractCodeSnippet(filePath, line, column, columnEnd, context = 2) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+
+    if (line < 1 || line > lines.length) return null;
+
+    const startLine = Math.max(1, line - context);
+    const endLine = Math.min(lines.length, line + context);
+
+    let snippet = '';
+    for (let i = startLine; i <= endLine; i++) {
+      const lineNumber = String(i).padStart(4, ' ');
+      const marker = i === line ? '>' : ' ';
+      snippet += `  ${marker} ${lineNumber} | ${lines[i - 1]}\n`;
+
+      // 如果是錯誤行且有列號，添加指示符
+      if (i === line && column) {
+        const padding = ' '.repeat(10 + (column - 1));
+        const underlineLength = columnEnd ? (columnEnd - column + 1) : 1;
+        const underline = '^'.repeat(Math.max(1, underlineLength));
+        snippet += `  ${padding}${underline}\n`;
+      }
+    }
+
+    return snippet;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * 列舉目錄中的文件
+ * @param {string} dirPath - 目錄路徑
+ * @param {string} [extension] - 文件擴展名過濾（例如 '.html'）
+ * @returns {string[]}
+ */
+function listAvailableFiles(dirPath, extension = null) {
+  try {
+    if (!fs.existsSync(dirPath)) return [];
+
+    const files = fs.readdirSync(dirPath);
+
+    if (extension) {
+      return files.filter(f => f.endsWith(extension));
+    }
+
+    return files;
+  } catch (error) {
+    return [];
+  }
+}
+
+// ====================================================================
 // 錯誤處理類別
 // ====================================================================
 
@@ -165,9 +296,13 @@ export class PluginError extends Error {
    * @param {any[]} args - 傳遞給錯誤訊息模板的參數
    * @param {Object} context - 錯誤上下文資訊
    * @param {string} [context.file] - 發生錯誤的檔案路徑
-   * @param {number} [context.line] - 發生錯誤的行號
+   * @param {number} [context.line] - 發生錯誤的行號（1-based）
+   * @param {number} [context.column] - 發生錯誤的列號（1-based）
+   * @param {number} [context.columnEnd] - 錯誤結束的列號（1-based）
    * @param {string} [context.source] - 錯誤來源代碼片段
    * @param {Error} [context.originalError] - 原始錯誤物件
+   * @param {string} [context.missingPath] - 找不到的檔案路徑（用於拼寫建議）
+   * @param {string} [context.searchDir] - 搜索目錄（用於列舉可用檔案）
    */
   constructor(code, args = [], context = {}) {
     const template = ErrorMessages[code];
@@ -199,7 +334,7 @@ export class PluginError extends Error {
   }
 
   /**
-   * 格式化錯誤訊息為完整的字串
+   * 格式化錯誤訊息為完整的字串（Astro 風格）
    * @param {boolean} verbose - 是否顯示詳細資訊（除錯模式）
    * @returns {string}
    */
@@ -207,31 +342,73 @@ export class PluginError extends Error {
     const prefix = '[vite-plugin-html-kit]';
     const colorCode = this.severity === 'error' ? '\x1b[31m' : '\x1b[33m';
     const resetCode = '\x1b[0m';
+    const boldCode = '\x1b[1m';
 
-    let output = `${colorCode}${prefix} ${this.title} [${this.code}]${resetCode}\n`;
-    output += `  ${this.message}\n`;
+    // 主標題行
+    let output = `\n${colorCode}${boldCode}${prefix} ${this.title} [${this.code}]${resetCode}\n`;
+    output += `${colorCode}  ${this.message}${resetCode}\n`;
 
-    // 加入上下文資訊
+    // 文件位置資訊（Astro 風格：file:line:column）
     if (this.context && this.context.file) {
-      output += `  📄 檔案: ${this.context.file}`;
+      output += '\n';
+      output += `  ${this.context.file}`;
       if (this.context.line) {
         output += `:${this.context.line}`;
+        if (this.context.column) {
+          output += `:${this.context.column}`;
+        }
       }
       output += '\n';
+
+      // 嘗試提取並顯示代碼片段
+      if (this.context.line) {
+        const snippet = extractCodeSnippet(
+          this.context.file,
+          this.context.line,
+          this.context.column,
+          this.context.columnEnd
+        );
+        if (snippet) {
+          output += snippet;
+        }
+      }
     }
 
-    // 建議
-    if (this.suggestion) {
-      output += `  💡 建議: ${this.suggestion}\n`;
+    // 拼寫建議（Astro 風格）
+    if (this.context && this.context.missingPath && this.context.searchDir) {
+      const availableFiles = listAvailableFiles(this.context.searchDir, '.html');
+      const targetFile = path.basename(this.context.missingPath);
+      const suggestion = findSimilarString(targetFile, availableFiles);
+
+      if (suggestion) {
+        output += `\n  ${colorCode}💡 提示: 您是否想要使用 "${suggestion}"?${resetCode}\n`;
+      }
+
+      // 列出可用的檔案（最多顯示 10 個）
+      if (availableFiles.length > 0) {
+        output += `\n  ${colorCode}📁 ${path.basename(this.context.searchDir)} 目錄中可用的檔案:${resetCode}\n`;
+        const displayFiles = availableFiles.slice(0, 10);
+        displayFiles.forEach(file => {
+          output += `    - ${file}\n`;
+        });
+        if (availableFiles.length > 10) {
+          output += `    ... 還有 ${availableFiles.length - 10} 個檔案\n`;
+        }
+      }
+    }
+
+    // 一般建議
+    if (this.suggestion && !this.context?.missingPath) {
+      output += `\n  💡 建議: ${this.suggestion}\n`;
     }
 
     // 詳細模式：顯示原始錯誤和堆疊
     if (verbose && this.context) {
       if (this.context.source) {
-        output += `  📝 來源:\n${this.context.source}\n`;
+        output += `\n  📝 來源:\n${this.context.source}\n`;
       }
       if (this.context.originalError) {
-        output += `  🔍 原始錯誤: ${this.context.originalError.message}\n`;
+        output += `\n  🔍 原始錯誤: ${this.context.originalError.message}\n`;
         if (this.context.originalError.stack) {
           output += `  堆疊:\n${this.context.originalError.stack}\n`;
         }
