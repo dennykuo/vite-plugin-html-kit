@@ -6,7 +6,7 @@
 
 A powerful Vite plugin for HTML templating, including partials, layouts, and data injection. It supports **Blade-like logic** (`@if`, `@foreach`, `@switch`) and standard **Lodash templates** for maximum flexibility.
 
-> 🚀 **79 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
+> 🚀 **171 tests passing** | ⚡ **Fast HMR support** | 🔒 **Built-in security protection**
 
 ## Features
 
@@ -15,6 +15,7 @@ A powerful Vite plugin for HTML templating, including partials, layouts, and dat
 - 🛠 **Blade-like Syntax**: Clean and readable control structures (`@if`, `@foreach`, `@switch`).
 - 📐 **Layout Inheritance**: Laravel Blade style layouts with `@extends`, `@section`, and `@yield`.
 - 🎰 **Component Slots**: Pass content blocks to components using `@slot`.
+- 🔡 **Escape Syntax**: Use `@@` to output literal `@` symbol (e.g., `@@if` → `@if`).
 - ⚡ **Vite Integration**: Seamless integration with Vite's dev server and build process. Uses `order: 'pre'` to ensure template-inserted resources are properly processed by Vite.
 - 🎨 **Zero Config Required**: Works out of the box, but highly customizable.
 
@@ -280,6 +281,7 @@ Pass content blocks to reusable components.
 | `partialsDir` | `string` | `'partials'` | Directory relative to `root` where partial files are stored. |
 | `data` | `object` | `{}` | Global data object injected into all templates. |
 | `compilerOptions` | `object` | `{}` | Lodash template compiler options (see [Lodash docs](https://lodash.com/docs/4.17.15#template)). |
+| `maxIncludeDepth` | `number` | `50` | Maximum include nesting depth to prevent infinite recursion. |
 
 ### Custom Variable Syntax
 
@@ -451,7 +453,7 @@ export default defineConfig({
 
 | Metric | Value |
 | :--- | :--- |
-| **Test Coverage** | 79 tests passing (8 test suites) |
+| **Test Coverage** | 171 tests passing (24 test suites) |
 | **Bundle Size** | ~15KB |
 | **Build Speed** | Negligible overhead on Vite builds |
 | **HMR Performance** | Instant hot reload on partial changes |
@@ -541,21 +543,25 @@ This is a security feature preventing directory traversal attacks. Make sure:
 3. Try restarting the dev server
 4. Clear Vite's cache: `rm -rf node_modules/.vite`
 
-### Issue: Blade syntax not working in partials
+### Issue: Escaping @ symbol for documentation
 
-**Symptoms:** `@if`, `@foreach` appearing literally in partial output.
+**Symptoms:** You want to display literal `@if` or `@foreach` text without it being processed.
 
 **Solution:**
-This is expected behavior! Blade syntax is only transformed in the main HTML files, not in partials. Use Lodash template syntax in partials instead:
+Use `@@` to escape the `@` symbol. Double `@@` will be converted to a single `@` in the output:
 
 ```html
-<!-- In partials, use: -->
-<% if (condition) { %>
-  ...
-<% } %>
+<!-- Display Blade syntax examples in documentation -->
+<pre>
+  @@if(condition)
+    {{ value }}
+  @@endif
+</pre>
+<!-- Output: @if(condition) ... @endif -->
 
-<!-- Or use variable interpolation: -->
-{{ variable }}
+<!-- Email addresses -->
+<p>Contact: user@@example.com</p>
+<!-- Output: Contact: user@example.com -->
 ```
 
 ### Issue: TypeScript errors with plugin config

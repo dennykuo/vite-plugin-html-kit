@@ -12,7 +12,7 @@
 
 | 項目 | 說明 | 狀態 |
 |------|------|------|
-| 文檔整理 | README.md、docs 及 playground 中資訊太混雜，要整理並統一 | ⏳ 待處理 |
+| 文檔整理 | README.md、docs 及 playground 中資訊已整合更新 | ✅ 已完成 |
 | `@@` 轉義功能 | 用於輸出字面 `@` 符號，例如 `@@if` → `@if` | ✅ 已完成 |
 | 遞迴深度檢查 | 添加 `maxIncludeDepth` 選項限制巢狀深度（預設 50） | ✅ 已完成 |
 
@@ -42,8 +42,7 @@
 | 問題 | 說明 | 參考位置 |
 |------|------|---------|
 | `@include` 不支援 slot | 只有 `<include>` 標籤支援 slot，`@include` 會轉換成自閉合標籤 | BLADE_FEATURES_TODO.md:31 |
-| 迴圈中 slot 作用域問題 | 在迴圈中使用 slot 可能有作用域問題，建議使用屬性傳遞 | README.md:267-274, AGENTS.md:917 |
-| Partials 中 Blade 語法限制 | Partials 中需要使用 Lodash 語法而非 Blade 語法 | README.md:544-559 |
+| 迴圈中 slot 作用域問題 | 在迴圈中使用 slot 可能有作用域問題，建議使用屬性傳遞 | README.md:267-274 |
 | Vite 資源處理警告 | 暫時性警告，不影響實際功能 | AGENTS.md:320 |
 
 ---

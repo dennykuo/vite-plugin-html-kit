@@ -504,11 +504,48 @@
       </div>
     </section>
 
-    <!-- 13. &#64;slot 組件槽位 -->
+    <!-- 13. @@ 轉義功能 -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">13</span>
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-600 text-xs font-bold">13</span>
+          @@ 轉義功能
+        </h2>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">
+          使用 @@ 輸出字面 @ 符號，用於顯示 Blade 語法範例或 email 地址
+        </p>
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">顯示 Blade 語法說明：</p>
+            <div class="bg-sky-50 rounded-lg p-3 border border-sky-100">
+              <pre class="text-xs font-mono text-gray-700 bg-white p-2 rounded"><code>@@if(condition)
+  @@foreach(items as item)
+    &#123;&#123; item &#125;&#125;
+  @@endforeach
+@@endif</code></pre>
+              <p class="text-xs text-gray-600 mt-2">
+                結果輸出：@if(condition) @foreach(items as item) {{ item }} @endforeach @endif
+              </p>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Email 地址：</p>
+            <div class="bg-sky-50 rounded-lg p-3 border border-sky-100">
+              <p class="text-sm">聯絡我們：user@@example.com</p>
+              <p class="text-xs text-gray-500 mt-1">模板寫法：user@@example.com → 輸出：user@example.com</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. &#64;slot 組件槽位 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">14</span>
           &#64;slot 組件槽位
         </h2>
       </div>

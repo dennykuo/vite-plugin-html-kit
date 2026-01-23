@@ -77,6 +77,7 @@
         <a href="#verbatim" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@verbatim</a>
         <a href="#json" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@json 輸出</a>
         <a href="#comments" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">Blade 註釋</a>
+        <a href="#at-escape" class="sidebar-link block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md border-l-2 border-transparent">@@ 轉義</a>
       </nav>
     </aside>
 
@@ -175,6 +176,12 @@ export default defineConfig({
                   <td class="px-4 py-3 text-sm text-gray-600">object</td>
                   <td class="px-4 py-3 text-sm text-gray-600">{}</td>
                   <td class="px-4 py-3 text-sm text-gray-600">Lodash 編譯器選項</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 text-sm font-mono text-blue-600">maxIncludeDepth</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">number</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">50</td>
+                  <td class="px-4 py-3 text-sm text-gray-600">Include 最大巢狀深度限制</td>
                 </tr>
               </tbody>
             </table>
@@ -667,9 +674,36 @@ export default defineConfig({
           </div>
         </section>
 
+        <!-- @@ Escape -->
+        <section id="at-escape" class="mb-16 scroll-mt-20">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">@@ 轉義</h2>
+          <p class="text-gray-600 mb-4">使用 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@@</code> 輸出字面 <code class="px-1.5 py-0.5 bg-gray-100 rounded text-sm">@</code> 符號，避免被當作 Blade 指令處理。</p>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <pre><code class="language-html">&lt;!-- 顯示 Blade 語法範例 --&gt;
+&lt;pre&gt;
+  @@if(condition)
+    {{ value }}
+  @@endif
+&lt;/pre&gt;
+&lt;!-- 輸出: @if(condition) ... @endif --&gt;
+
+&lt;!-- Email 格式 --&gt;
+&lt;p&gt;聯絡我們：user@@example.com&lt;/p&gt;
+&lt;!-- 輸出: user@example.com --&gt;
+
+&lt;!-- 所有 Blade 指令都可以轉義 --&gt;
+@@foreach, @@include, @@yield, @@section ...</code></pre>
+          </div>
+
+          <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+            <p class="text-sm text-yellow-800"><strong>用途：</strong>用於撰寫文檔、教學範例，或顯示 Blade 語法說明時，避免程式碼被當作指令執行。</p>
+          </div>
+        </section>
+
         <!-- Footer -->
         <footer class="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
-          <p>vite-plugin-html-kit &copy; 2024 Denny. MIT License.</p>
+          <p>vite-plugin-html-kit &copy; 2026 Denny. MIT License.</p>
         </footer>
 
       </div>
