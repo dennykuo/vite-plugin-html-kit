@@ -110,6 +110,13 @@
 - ✅ 支援路徑安全檢查
 - ✅ 與其他 Blade 功能完全整合
 
+### 15. @@ 轉義 - 輸出字面 @ 符號
+- ✅ `@@` - 轉義為單個 `@` 符號
+- ✅ `@@if` → `@if`（字面文字，不會被當作 Blade 指令）
+- ✅ `@@foreach(items as item)` → `@foreach(items as item)`（字面文字）
+- ✅ `user@@example.com` → `user@example.com`（email 格式）
+- ✅ 可用於文檔示範或顯示 Blade 語法範例
+
 ---
 
 ## ❌ 未實現功能（前端適用）

@@ -1041,6 +1041,23 @@ export default function vitePluginHtmlKit(options = {}) {
     // {{-- 任何內容 --}} -> (空字串，完全移除)
 
     // ========================================
+    // 步驟 1.55: 處理 @@ 轉義語法
+    // ========================================
+    // 將 @@ 替換為佔位符，防止被當作 Blade 指令處理
+    // 處理完所有 Blade 語法後，再將佔位符還原為 @
+    //
+    // 範例：
+    // @@if      -> __VPHK_AT__if   -> @if (字面文字)
+    // @@foreach -> __VPHK_AT__foreach -> @foreach (字面文字)
+    // user@@example.com -> user__VPHK_AT__example.com -> user@example.com
+    //
+    // 為什麼在這裡處理：
+    // - 必須在所有 Blade 指令處理之前
+    // - 在 Blade 註釋移除之後（避免註釋內的 @@ 被處理）
+    const AT_PLACEHOLDER = '__VPHK_AT__';
+    processed = processed.replace(/@@/g, AT_PLACEHOLDER);
+
+    // ========================================
     // 步驟 1.6: 轉換 @json() 為 JSON.stringify()
     // ========================================
     // 將 @json() 語法轉換為 Lodash template 的輸出語法
@@ -1435,6 +1452,10 @@ export default function vitePluginHtmlKit(options = {}) {
 
     processed = processed.replace(REGEX.ENDFOREACH, '<% } } %>');
     // @endforeach -> 關閉 for 和 loop 區塊作用域
+
+    // 注意：@@轉義的佔位符 __VPHK_AT__ 不在這裡還原
+    // 因為 resolveIncludes 還會再次調用 transformLogicTags
+    // 佔位符會在 transformIndexHtml 的最後統一還原
 
     // ========================================
     // 步驟 5: 儲存到快取
@@ -2601,6 +2622,18 @@ export default function vitePluginHtmlKit(options = {}) {
       //     <p>文章內容</p>
       //   </div>
       let fullHtml = resolveIncludes(html, globalData, filename);
+
+      // ========================================
+      // 步驟 3.5: 還原 @@ 轉義
+      // ========================================
+      // 將所有 __VPHK_AT__ 佔位符還原為單個 @
+      // 這樣 @@if 最終會輸出為 @if（字面文字）
+      //
+      // 為什麼在這裡還原（而不是在 transformLogicTags 中）：
+      // - resolveIncludes 內部會多次調用 transformLogicTags
+      // - 如果在 transformLogicTags 中就還原，後續的調用會把 @if 當作 Blade 指令
+      // - 必須等所有 Blade 處理完成後才能還原
+      fullHtml = fullHtml.replace(/__VPHK_AT__/g, '@');
 
       // ========================================
       // 步驟 4: 編譯並執行 Lodash Template
