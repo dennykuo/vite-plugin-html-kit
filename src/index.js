@@ -668,7 +668,7 @@ const REGEX = {
    * 匹配 @slot('name') 或 @slot('name', 'default') 佔位符
    * 捕獲群組: $1=slot名稱, $2=預設值(可選)
    */
-  SLOT: /@slot\s*\(\s*['"](.+?)['"]\s*(?:,\s*['"](.+?)['"]\s*)?\)/gi,
+  SLOT: /@slot\s*\(\s*['"](.+?)['"]\s*(?:,\s*['"](.*?)['"]\s*)?\)/gi,
 
   // ====================================================================
   // 📌 HTML 屬性解析 (Attribute Parsing)
@@ -2107,6 +2107,13 @@ export default function vitePluginHtmlKit(options = {}) {
             let content = fs.readFileSync(filePath, 'utf-8');
 
             // ----------------------------------------
+            // 步驟 3.3.1: 處理 Partial 內的佈局繼承
+            // ----------------------------------------
+            // Partial 檔案內也可能使用 @extends 繼承佈局
+            // 需要在後續處理前先解析佈局繼承
+            content = processExtends(content, src);
+
+            // ----------------------------------------
             // 步驟 3.3.5: 處理 @once 區塊（防止重複輸出）
             // ----------------------------------------
             // @once 區塊用於確保某段代碼只輸出一次，即使 partial 被多次 include
@@ -2149,23 +2156,6 @@ export default function vitePluginHtmlKit(options = {}) {
             }
 
             // ----------------------------------------
-            // 步驟 3.5: 替換 Partial 中的 @slot 佔位符
-            // ----------------------------------------
-            // 在 partial 檔案中，@slot('name', 'default') 會被替換為：
-            // 1. 傳入的 slot 內容（優先）
-            // 2. 默認值（如果有提供）
-            // 3. 空字串
-            content = content.replace(REGEX.SLOT, (slotMatch, slotName, defaultValue) => {
-              if (slots[slotName] !== undefined) {
-                return slots[slotName];
-              }
-              if (defaultValue !== undefined) {
-                return defaultValue;
-              }
-              return '';
-            });
-
-            // ----------------------------------------
             // 步驟 3.6: 解析傳遞的屬性（Locals）
             // ----------------------------------------
             // 從 <include src="..." title="首頁" count="5" />
@@ -2201,10 +2191,32 @@ export default function vitePluginHtmlKit(options = {}) {
             const resolvedContent = resolve(content, currentData, src);
 
             // ----------------------------------------
+            // 步驟 3.9.5: 替換 Partial 中的 @slot 佔位符
+            // ----------------------------------------
+            // 在遞迴處理巢狀 include 之後才替換 @slot 佔位符，
+            // 確保內層 <include> 的 slot 由子遞迴自行消化，
+            // 這裡只替換屬於當前層級的 @slot 佔位符。
+            //
+            // 在 partial 檔案中，@slot('name', 'default') 會被替換為：
+            // 1. 傳入的 slot 內容（優先）
+            // 2. 默認值（如果有提供）
+            // 3. 空字串
+            REGEX.SLOT.lastIndex = 0;
+            const slotResolved = resolvedContent.replace(REGEX.SLOT, (slotMatch, slotName, defaultValue) => {
+              if (slots[slotName] !== undefined) {
+                return slots[slotName];
+              }
+              if (defaultValue !== undefined) {
+                return defaultValue;
+              }
+              return '';
+            });
+
+            // ----------------------------------------
             // 步驟 3.10: 編譯並執行 Lodash Template
             // ----------------------------------------
             try {
-              const compiled = lodash.template(resolvedContent, defaultCompilerOptions);
+              const compiled = lodash.template(slotResolved, defaultCompilerOptions);
               return compiled(currentData);
 
             } catch (e) {
